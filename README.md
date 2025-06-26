@@ -1,4 +1,4 @@
-# 🐍 Snake and Ladder Multiplayer 🎲
+![image](https://github.com/user-attachments/assets/b76211be-c0c0-426f-b4d6-a117fe0e1379)![image](https://github.com/user-attachments/assets/b76211be-c0c0-426f-b4d6-a117fe0e1379)# 🐍 Snake and Ladder Multiplayer 🎲
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![Pygame](https://img.shields.io/badge/pygame-2.6.1-green.svg)
@@ -9,8 +9,8 @@ Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikemba
 *Tempatkan screenshot dari dua jendela klien yang sedang berjalan berdampingan di sini untuk menunjukkan fungsionalitas multiplayer secara langsung.*
 
 <p align="center">
-  <img src="URL_SCREENSHOT_CLIENT_1.png" alt="Tampilan Klien 1" width="400"/>
-  <img src="URL_SCREENSHOT_CLIENT_2.png" alt="Tampilan Klien 2" width="400"/>
+  <img src="https://github.com/user-attachments/assets/7f97bd7b-1961-4573-b7ee-594d2d804f7f" alt="Tampilan Klien 1" width="400"/>
+  <img src="https://github.com/user-attachments/assets/864f9940-4425-4eeb-a921-52b09822909d" alt="Tampilan Klien 2" width="400"/>
 </p>
 
 ## Daftar Isi
