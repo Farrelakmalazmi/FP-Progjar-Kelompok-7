@@ -7,6 +7,28 @@ import time
 import math
 import random
 
+def get_game_server_from_balancer(balancer_address):
+    """
+    Menghubungi Load Balancer untuk mendapatkan alamat server game.
+    """
+    try:
+        print(f"Menghubungi Load Balancer di {balancer_address}...")
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(balancer_address)
+        
+        response_data = s.recv(1024).decode('utf-8')
+        server_info = json.loads(response_data)
+        
+        host = server_info['host']
+        port = server_info['port']
+        
+        print(f"Diarahkan ke server game di: {host}:{port}")
+        s.close()
+        return (host, port)
+    except Exception as e:
+        print(f"Error saat menghubungi Load Balancer: {e}")
+        return None
+
 pygame.init()
 pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
 WIDTH, HEIGHT = 800, 600
@@ -119,6 +141,7 @@ class VisualPlayer:
 
 def draw_dice(number):
     if number > 0: screen.blit(dice_images[number], (620, 70))
+
 def draw_text(text, font, color, center_pos, align="center"):
     lines = text.splitlines()
     for i, line in enumerate(lines):
@@ -135,31 +158,55 @@ def draw_text(text, font, color, center_pos, align="center"):
         screen.blit(text_surf, text_rect)
 
 class GameClient:
-    def __init__(self, server_ip):
-        self.socket, self.connected = None, False; self.my_player_num, self.game_data = 0, {}; self.server_address = (server_ip, 55555); self.board = Board(); self.p1_visual = VisualPlayer('assets/pawn_blue.png', self.board.pos_map); self.p2_visual = VisualPlayer('assets/pawn_pink.png', self.board.pos_map); self.is_dice_animating = False; self.game_state = "NAME_ENTRY"; self.player_name = ""; self.error_message = ""; self.caption_set = False
+    def __init__(self, game_server_address):
+        self.server_address = game_server_address
+        self.socket, self.connected = None, False
+        self.my_player_num, self.game_data = 0, {}
+        self.board = Board()
+        self.p1_visual = VisualPlayer('assets/pawn_blue.png', self.board.pos_map)
+        self.p2_visual = VisualPlayer('assets/pawn_pink.png', self.board.pos_map)
+        self.is_dice_animating = False
+        self.game_state = "NAME_ENTRY"
+        self.player_name = ""
+        self.error_message = ""
+        self.caption_set = False
 
     def start_connection_thread(self):
         thread = threading.Thread(target=self._connect_and_listen_worker); thread.daemon = True; thread.start()
     
     def _connect_and_listen_worker(self):
-        try: self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM); self.socket.connect(self.server_address); self.connected = True; self.socket.sendall((self.player_name + '\n').encode('utf-8')); self.game_state = "PLAYING"; self.listen_server()
-        except Exception as e: self.error_message = f"Gagal terhubung: {e}"; self.game_state = "NAME_ENTRY"; self.connected = False
+        try: 
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.connect(self.server_address)
+            self.connected = True
+            self.socket.sendall((self.player_name + '\n').encode('utf-8'))
+            self.game_state = "PLAYING"
+            self.listen_server()
+        except Exception as e: 
+            self.error_message = f"Gagal terhubung: {e}"
+            self.game_state = "NAME_ENTRY"
+            self.connected = False
 
     def listen_server(self):
-        buffer = "";
+        buffer = ""
         while self.connected:
             try:
-                data = self.socket.recv(4096).decode('utf-8');
+                data = self.socket.recv(4096).decode('utf-8')
                 if not data: break
                 buffer += data
-                while '\n' in buffer: line, buffer = buffer.split('\n', 1);
-                if line: self.handle_message(json.loads(line))
-            except: break
-        self.connected = False; self.error_message = "Koneksi terputus."; self.game_state = "NAME_ENTRY"
+                while '\n' in buffer: 
+                    line, buffer = buffer.split('\n', 1)
+                    if line: self.handle_message(json.loads(line))
+            except: 
+                break
+        self.connected = False
+        self.error_message = "Koneksi terputus."
+        self.game_state = "NAME_ENTRY"
 
     def handle_message(self, msg):
         command = msg.get('command')
-        if command == 'PLAYER_ASSIGNED': self.my_player_num = msg.get('player_num')
+        if command == 'PLAYER_ASSIGNED': 
+            self.my_player_num = msg.get('player_num')
         elif command == 'GAME_UPDATE':
             if msg.get('winner') and not self.game_data.get('winner'):
                 if win_jingle_sound: win_jingle_sound.play()
@@ -173,15 +220,22 @@ class GameClient:
             player_to_move = self.p1_visual if player_num == 1 else self.p2_visual
             start_pos = self.game_data.get(f'p{player_num}_pos', 0)
             player_to_move.start_move_animation(start_pos, path)
-        elif command == 'SERVER_FULL': self.error_message = "Server Penuh!"; self.connected = False; self.game_state="NAME_ENTRY"
+        elif command == 'SERVER_FULL': 
+            self.error_message = "Server Penuh!"
+            self.connected = False
+            self.game_state="NAME_ENTRY"
 
     def dice_animation(self, final_dice):
-        self.is_dice_animating = True;
-        for i in range(15): self.game_data['dice'] = random.randint(1, 6); time.sleep(0.06)
-        self.game_data['dice'] = final_dice; self.is_dice_animating = False
+        self.is_dice_animating = True
+        for i in range(15): 
+            self.game_data['dice'] = random.randint(1, 6)
+            time.sleep(0.06)
+        self.game_data['dice'] = final_dice
+        self.is_dice_animating = False
     
     def send_command(self, command):
-        if self.connected: self.socket.sendall((json.dumps(command) + '\n').encode())
+        if self.connected: 
+            self.socket.sendall((json.dumps(command) + '\n').encode())
 
     def run(self):
         font_40 = pygame.font.SysFont("comicsansms", 40)
@@ -194,36 +248,55 @@ class GameClient:
             is_any_pawn_moving = self.p1_visual.is_moving or self.p2_visual.is_moving
 
             for event in pygame.event.get():
-                if event.type == pygame.QUIT: running = False
+                if event.type == pygame.QUIT: 
+                    running = False
                 if self.game_state == "NAME_ENTRY":
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_RETURN and self.player_name: self.game_state = "CONNECTING"; self.start_connection_thread()
-                        elif event.key == pygame.K_BACKSPACE: self.player_name = self.player_name[:-1]
-                        else: self.player_name += event.unicode
+                        if event.key == pygame.K_RETURN and self.player_name: 
+                            self.game_state = "CONNECTING"
+                            self.start_connection_thread()
+                        elif event.key == pygame.K_BACKSPACE: 
+                            self.player_name = self.player_name[:-1]
+                        else: 
+                            self.player_name += event.unicode
                 elif self.game_state == "PLAYING":
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
-                            if not self.game_data.get('game_active'): self.send_command({'command': 'START_GAME'})
-                            elif is_my_turn_now and not self.is_dice_animating and not is_any_pawn_moving: self.send_command({'command': 'ROLL_DICE'})
+                            if not self.game_data.get('game_active'): 
+                                self.send_command({'command': 'START_GAME'})
+                            elif is_my_turn_now and not self.is_dice_animating and not is_any_pawn_moving: 
+                                self.send_command({'command': 'ROLL_DICE'})
             
             screen.fill(back_color)
             if self.game_state == "NAME_ENTRY":
-                draw_text("Masukkan Nama Anda:", font_40, (255,255,255), (WIDTH/2, HEIGHT/2 - 50)); input_rect = pygame.Rect(WIDTH/2 - 150, HEIGHT/2, 300, 50); pygame.draw.rect(screen, (255,255,255), input_rect, 2); draw_text(self.player_name, font_40, (255,255,255), (input_rect.x + 10, input_rect.centery), align="left"); draw_text("Tekan ENTER untuk lanjut", font_20, (200,200,200), (WIDTH/2, HEIGHT/2 + 70));
-                if self.error_message: draw_text(self.error_message, font_20, (255,100,100), (WIDTH/2, HEIGHT/2 + 100))
+                draw_text("Masukkan Nama Anda:", font_40, (255,255,255), (WIDTH/2, HEIGHT/2 - 50))
+                input_rect = pygame.Rect(WIDTH/2 - 150, HEIGHT/2, 300, 50)
+                pygame.draw.rect(screen, (255,255,255), input_rect, 2)
+                draw_text(self.player_name, font_40, (255,255,255), (input_rect.x + 10, input_rect.centery), align="left")
+                draw_text("Tekan ENTER untuk lanjut", font_20, (200,200,200), (WIDTH/2, HEIGHT/2 + 70))
+                if self.error_message: 
+                    draw_text(self.error_message, font_20, (255,100,100), (WIDTH/2, HEIGHT/2 + 100))
             elif self.game_state == "CONNECTING":
                 draw_text("Menghubungkan ke server...", font_40, (255,255,255), (WIDTH/2, HEIGHT/2))
             elif self.game_state == "PLAYING":
-                if self.my_player_num != 0 and not self.caption_set: pygame.display.set_caption(f"S&L Online - P{self.my_player_num} ({self.player_name})"); self.caption_set = True
+                if self.my_player_num != 0 and not self.caption_set: 
+                    pygame.display.set_caption(f"S&L Online - P{self.my_player_num} ({self.player_name})")
+                    self.caption_set = True
                 
-                self.p1_visual.update_animation(); self.p2_visual.update_animation()
+                self.p1_visual.update_animation()
+                self.p2_visual.update_animation()
                 screen.blit(board_img, (0, 0))
-                self.p1_visual.draw(is_active_turn=(self.game_data.get('turn') == 1)); self.p2_visual.draw(is_active_turn=(self.game_data.get('turn') == 2))
+                self.p1_visual.draw(is_active_turn=(self.game_data.get('turn') == 1))
+                self.p2_visual.draw(is_active_turn=(self.game_data.get('turn') == 2))
                 draw_dice(self.game_data.get('dice', 0))
                 
-                dark_grey=(53,53,53); turn = self.game_data.get('turn')
+                dark_grey=(53,53,53)
+                turn = self.game_data.get('turn')
                 draw_text("Turn", font_40, dark_grey, (700, 300))
-                if turn == 1: pygame.draw.circle(screen, pla1clr, (700, 400), 50)
-                elif turn == 2: pygame.draw.circle(screen, pla2clr, (700, 400), 50)
+                if turn == 1: 
+                    pygame.draw.circle(screen, pla1clr, (700, 400), 50)
+                elif turn == 2: 
+                    pygame.draw.circle(screen, pla2clr, (700, 400), 50)
                 
                 status_text = ""
                 if not self.game_data.get('game_active'): 
@@ -244,12 +317,23 @@ class GameClient:
                 if not self.connected:
                     draw_text(self.error_message, font_40, (255,0,0), (WIDTH/2, HEIGHT/2))
             
-            pygame.display.flip(); clock.tick(60)
+            pygame.display.flip()
+            clock.tick(60)
         
-        if self.connected: self.socket.close();
-        pygame.quit(); sys.exit()
+        if self.connected: 
+            self.socket.close()
+        pygame.quit()
+        sys.exit()
 
 if __name__ == "__main__":
-    server_ip = sys.argv[1] if len(sys.argv) > 1 else '127.0.0.1'
-    client = GameClient(server_ip)
+    balancer_ip = sys.argv[1] if len(sys.argv) > 1 else '127.0.0.1'
+    balancer_port = 55555
+    
+    game_server_address = get_game_server_from_balancer((balancer_ip, balancer_port))
+    
+    if not game_server_address:
+        print("Gagal mendapatkan alamat dari Load Balancer. Aplikasi ditutup.")
+        sys.exit()
+        
+    client = GameClient(game_server_address)
     client.run()
