@@ -1,9 +1,9 @@
-# 🐍 Ular Tangga Multiplayer 🎲
+# 🐍 Snake and Ladder Multiplayer 🎲
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![Pygame](https://img.shields.io/badge/pygame-2.6.1-green.svg)
 
-Sebuah game Ular Tangga klasik dengan sentuhan modern, dibangun dari nol menggunakan Python, Pygame, dan Socket Programming untuk pengalaman bermain multiplayer yang seru melalui jaringan. Proyek ini adalah implementasi penuh dari game klasik yang kita semua kenal, namun dibawa ke level berikutnya dengan memungkinkan dua pemain untuk bermain bersama dari komputer yang berbeda melalui jaringan lokal (LAN).
+Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikembangkan untuk memenuhi tugas mata kuliah Pemrograman Jaringan (C). Dengan memanfaatkan kekuatan Python, library Pygame untuk rendering grafis, dan modul Socket untuk komunikasi jaringan, kami berhasil membangun sebuah aplikasi client-server yang fungsional. Fokus utama dari proyek ini adalah mendemonstrasikan arsitektur jaringan yang memungkinkan dua pemain untuk berinteraksi secara real-time dalam satu sesi permainan melalui jaringan lokal (LAN).
 
 ## Tangkapan Layar (Screenshots)
 *Tempatkan screenshot dari dua jendela klien yang sedang berjalan berdampingan di sini untuk menunjukkan fungsionalitas multiplayer secara langsung.*
