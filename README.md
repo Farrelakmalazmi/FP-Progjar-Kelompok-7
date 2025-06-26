@@ -156,4 +156,4 @@ Proyek ini dikembangkan dengan penuh semangat oleh:
 - **[Farrel Akmalazmi Nugraha - 5025221138]**
 - **[Nama Anggota 2]**
 
-Proyek ini dibuat sebagai bagian dari tugas mata kuliah **[Nama Mata Kuliah]** di **[Nama Universitas]**.
+Proyek ini dibuat sebagai bagian dari tugas mata kuliah **[Pemrograman Jaringan]**.
