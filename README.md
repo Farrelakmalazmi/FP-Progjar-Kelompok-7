@@ -1,147 +1,159 @@
-# 🐍 Snake & Ladder Online: Multiplayer
+# 🐍 Ular Tangga Multiplayer 🎲
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![Pygame](https://img.shields.io/badge/pygame-2.6.1-green.svg)
 
-Selamat datang di Snake & Ladder Online, sebuah implementasi game Ular Tangga klasik yang dibangun kembali dengan arsitektur client-server modern. Proyek ini didesain sebagai tugas akhir mata kuliah Pemrograman Jaringan, yang mendemonstrasikan komunikasi jaringan real-time, penanganan koneksi konkuren, dan desain perangkat lunak yang modular.
+Sebuah game Ular Tangga klasik dengan sentuhan modern, dibangun dari nol menggunakan Python, Pygame, dan Socket Programming untuk pengalaman bermain multiplayer yang seru melalui jaringan. Proyek ini adalah implementasi penuh dari game klasik yang kita semua kenal, namun dibawa ke level berikutnya dengan memungkinkan dua pemain untuk bermain bersama dari komputer yang berbeda melalui jaringan lokal (LAN).
+
+## Tangkapan Layar (Screenshots)
+*Tempatkan screenshot dari dua jendela klien yang sedang berjalan berdampingan di sini untuk menunjukkan fungsionalitas multiplayer secara langsung.*
+
+<p align="center">
+  <img src="URL_SCREENSHOT_CLIENT_1.png" alt="Tampilan Klien 1" width="400"/>
+  <img src="URL_SCREENSHOT_CLIENT_2.png" alt="Tampilan Klien 2" width="400"/>
+</p>
 
 ## Daftar Isi
+- [Tentang Proyek](#tentang-proyek)
 - [Fitur Unggulan](#fitur-unggulan)
-- [Arsitektur Proyek](#arsitektur-proyek)
-- [Tumpukan Teknologi (Technology Stack)](#tumpukan-teknologi-technology-stack)
-- [Struktur File Proyek](#struktur-file-proyek)
-- [Instalasi & Pengaturan](#instalasi--pengaturan)
-- [Cara Bermain](#cara-bermain)
-- [Protokol Komunikasi](#protokol-komunikasi)
-- [Tim Pengembang](#tim-pengembang)
+- [Arsitektur & Pilihan Desain](#arsitektur--pilihan-desain)
+- [Protokol Jaringan](#protokol-jaringan)
+- [Struktur Proyek](#struktur-proyek)
+- [Cara Menjalankan](#cara-menjalankan)
+- [Tim Kami](#tim-kami)
+
+## Tentang Proyek
+Proyek Ular Tangga Multiplayer ini adalah implementasi penuh dari game klasik yang kita semua kenal dan sukai, namun dibawa ke level berikutnya dengan memungkinkan dua pemain untuk bermain bersama dari komputer yang berbeda melalui jaringan lokal (LAN). Dibangun sepenuhnya menggunakan Python, proyek ini memanfaatkan kekuatan library Pygame untuk antarmuka grafis yang interaktif dan modul `socket` bawaan Python untuk membangun komunikasi client-server yang andal dan responsif.
 
 ## Fitur Unggulan
-- **Lobi & Nama Pemain**: Pemain dapat memasukkan nama mereka sebelum bergabung ke dalam permainan.
-- **Server Otoritatif**: Seluruh logika dan aturan permainan (kocokan dadu, validasi gerakan, penentuan pemenang) 100% dikelola oleh server, mencegah kecurangan dari sisi klien.
-- **Real-time Multiplayer**: Mendukung dua pemain secara bersamaan dalam satu sesi permainan melalui jaringan lokal (LAN/WiFi).
-- **Animasi yang Hidup**:
-    - **Animasi Kocokan Dadu**: Dadu berputar secara visual sebelum menunjukkan hasil akhir.
-    - **Animasi Gerakan Pion**: Pion bergerak secara mulus dari satu kotak ke kotak lainnya.
-    - **Indikator Giliran**: Pion pemain yang sedang mendapat giliran akan beranimasi (pulsing) untuk memberikan isyarat visual yang jelas.
-- **Efek Suara**: Dilengkapi dengan efek suara untuk kocokan dadu, gerakan pion, dan saat terkena ular untuk pengalaman yang lebih imersif.
-- **Penanganan Koneksi yang Tangguh**: Server menggunakan *ThreadPool* untuk menangani setiap klien secara terpisah, memastikan server tetap responsif. Server juga dapat menangani klien yang masuk dan keluar di tengah permainan.
-- **Siklus Permainan Otomatis**: Setelah seorang pemenang ditentukan, server akan secara otomatis mereset permainan setelah jeda beberapa detik, memungkinkan sesi baru untuk dimulai tanpa perlu me-restart server.
+Proyek ini dirancang dengan berbagai fitur untuk menciptakan pengalaman bermain yang lengkap, modern, dan stabil.
 
-## Arsitektur Proyek
-Proyek ini mengadopsi arsitektur **Client-Server** dengan desain server yang modular untuk memisahkan tanggung jawab (*Separation of Concerns*).
+### Gameplay
+- **🧑‍🤝‍🧑 Multiplayer untuk 2 Pemain**: Didesain khusus untuk dua pemain yang terhubung melalui jaringan yang sama.
+- **📜 Aturan Permainan Klasik**: Mengimplementasikan papan 10x10 dengan aturan ular (turun) dan tangga (naik) yang sudah dikenal.
+- **⚖️ Sistem Giliran (Turn-Based) yang Adil**: Server bertindak sebagai wasit, memastikan giliran pemain berjalan secara teratur dan adil.
+- **🎲 Giliran Ekstra**: Mendapatkan angka 6 pada dadu akan memberikan pemain hak untuk melempar dadu sekali lagi.
+- **🎯 Kemenangan Akurat**: Pemain harus mendapatkan angka dadu yang pas untuk mendarat tepat di kotak 100.
+- **🔄 Permainan Berkelanjutan**: Setelah seorang pemain menang, server secara otomatis akan mereset dan memulai permainan baru setelah jeda 5 detik.
+
+### Teknis & Jaringan
+- **👑 Arsitektur Client-Server Otoritatif**: Server adalah satu-satunya sumber kebenaran (*Single Source of Truth*), memvalidasi semua aksi dan mencegah kecurangan dari sisi client.
+- **🔗 Koneksi TCP Persisten**: Menggunakan Sockets TCP untuk membangun koneksi yang andal dan menjaga sesi tetap terbuka selama permainan berlangsung.
+- **📝 Protokol Komunikasi JSON**: Semua komunikasi antara client dan server menggunakan format JSON yang terstruktur dan mudah dibaca.
+- **⚙️ Server Konkuren dengan Thread Pool**: Menggunakan `concurrent.futures.ThreadPoolExecutor` untuk menangani koneksi dari banyak client secara efisien dan stabil.
+- **🔒 Keamanan Thread (Thread-Safety)**: Mengimplementasikan `threading.Lock` pada semua operasi kritis di server untuk mencegah *race condition* dan memastikan integritas data *game state*.
+
+### Pengalaman Pengguna (UX)
+- **🎨 Antarmuka Grafis yang Menarik**: Dibangun dengan `Pygame`, menampilkan papan permainan, bidak pemain, dan informasi status permainan secara jelas.
+- **💨 Animasi yang Halus**: Animasi pergerakan bidak dari kotak ke kotak dan animasi kocokan dadu memberikan *feedback* visual yang memuaskan.
+- **🔊 Efek Suara Imersif**: Dilengkapi dengan efek suara untuk kocokan dadu, pergerakan bidak, dan saat pemain memenangkan permainan.
+- **💡 Feedback Giliran yang Jelas**: Bidak pemain yang sedang mendapat giliran akan berdenyut secara visual, memudahkan pemain untuk mengetahui kapan giliran mereka tiba.
+- **🏷️ Personalisasi Nama Pemain**: Pemain dapat memasukkan nama mereka sendiri sebelum permainan dimulai, yang akan ditampilkan di sepanjang permainan.
+
+## Arsitektur & Pilihan Desain
+Proyek ini dibangun di atas arsitektur Client-Server yang modular untuk memisahkan tanggung jawab, meningkatkan keterbacaan kode, dan memudahkan pemeliharaan.
 
 ```
-+------------------+                    +--------------------------------+
-|   Client 1       |  <-- JSON over --> |         Network Layer          |
-|  (client.py)     |      TCP/IP       |          (server.py)           |
-+------------------+                    | (Socket, ThreadPoolExecutor)   |
-                                        +----------------|---------------+
-+------------------+                    +----------------v---------------+
-|   Client 2       |  <-- JSON over --> |        Game Logic Layer        |
-|  (client.py)     |      TCP/IP       |       (game_server.py)         |
-+------------------+                    +----------------|---------------+
-                                        +----------------v---------------+
-                                        |          Data State Layer      |
-                                        |         (game_state.py)        |
-                                        +--------------------------------+
++----------------+      +------------------+      +----------------+
+|   Client 1     |      |                  |      |   Client 2     |
+| (Pygame,       |      |      Server      |      | (Pygame,       |
+|  Sockets)      |      | (Sockets,        |      |  Sockets)      |
+|                |      |  ThreadPool)     |      |                |
++-------+--------+      +--------+---------+      +--------+-------+
+        |                        ^                        |
+        |                        |                        |
+        +------------------------+------------------------+
+                  (Koneksi TCP/IP via LAN/localhost)
+                      (Port: 55555, Protokol JSON)
 ```
 
-- **Data State Layer (`game_state.py`)**: Bertindak sebagai *single source of truth*. Kelas ini hanya menyimpan data mentah kondisi permainan (posisi, giliran, pemenang) tanpa logika apa pun.
-- **Game Logic Layer (`game_server.py`)**: Otak dari permainan. Kelas ini mengimplementasikan semua aturan, memproses perintah dari klien, dan memodifikasi `GameState`.
-- **Network Layer (`server.py`)**: Pintu gerbang utama. File ini bertugas mendengarkan koneksi masuk, mengelola *thread pool*, dan meneruskan komunikasi antara klien dan *Game Logic Layer*.
-- **Client (`client.py`)**: Bertindak sebagai lapisan presentasi (*view*). Klien sepenuhnya "bodoh"; ia hanya merender kondisi permainan yang diterima dari server dan mengirim input pengguna.
+#### Pilihan Desain Utama:
+> **Mengapa Thread Pool?** 🤔 Dibandingkan membuat satu thread baru untuk setiap client (`threading.Thread`), `ThreadPoolExecutor` lebih efisien dalam mengelola sumber daya. Ia membatasi jumlah thread aktif, mencegah server dari kehabisan memori atau menjadi tidak responsif saat banyak client mencoba terhubung secara bersamaan.
 
-## Tumpukan Teknologi (Technology Stack)
+> **Mengapa Server Otoritatif?** 🛡️ Dengan menjadikan server sebagai pengatur utama, logika permainan (misalnya hasil lemparan dadu) tidak dapat dimanipulasi oleh client. Client hanya bertugas mengirim input dan menampilkan hasil, memastikan permainan yang adil untuk semua.
+
+#### Tumpukan Teknologi (Technology Stack):
 - **Bahasa Pemrograman**: Python 3
-- **Library Utama**:
-    - **`pygame`**: Untuk membangun seluruh antarmuka grafis (GUI), menangani aset visual, audio, dan input pengguna.
-    - **`socket`**: Untuk komunikasi jaringan tingkat rendah berbasis protokol TCP/IP.
-    - **`threading` & `concurrent.futures`**: Untuk mengimplementasikan *ThreadPoolExecutor* di sisi server, memungkinkan penanganan klien secara konkuren.
-    - **`json`**: Untuk serialisasi dan deserialisasi data yang dikirimkan antara klien dan server, memastikan format pesan yang terstruktur.
-    - **`time`**: Digunakan untuk mengatur jeda antar pesan di server, memberikan waktu bagi klien untuk menjalankan animasi.
+- **Library Grafis & Game**: Pygame
+- **Jaringan**: Modul `socket` bawaan Python
+- **Konkurensi**: Modul `threading` dan `concurrent.futures.ThreadPoolExecutor`
 
-## Struktur File Proyek
+## Protokol Jaringan
+Komunikasi antara client dan server mengikuti protokol berbasis JSON. Setiap pesan JSON dikirim sebagai satu baris dan diakhiri dengan karakter newline (`\n`) sebagai pemisah.
+
+#### Client → Server
+| Perintah | Parameter | Deskripsi |
+| :--- | :--- | :--- |
+| `(string nama)` | - | Pesan teks mentah pertama yang dikirim setelah terhubung, berisi nama pemain. |
+| `{"command": "START_GAME"}` | - | Dikirim saat pemain menekan spasi untuk memulai game (jika belum aktif). |
+| `{"command": "ROLL_DICE"}` | - | Dikirim saat pemain menekan spasi untuk melempar dadu di gilirannya. |
+
+#### Server → Client
+| Perintah | Parameter | Deskripsi |
+| :--- | :--- | :--- |
+| `PLAYER_ASSIGNED` | `player_num` | Memberitahu client nomor pemain yang diberikan (1 atau 2). |
+| `GAME_UPDATE` | `(beragam)` | "Heartbeat" game. Pesan utama yang berisi seluruh status game terkini. |
+| `DICE_RESULT` | `dice` | Memberitahu hasil kocokan dadu untuk memulai animasi di client. |
+| `SERVER_FULL`| - | Dikirim jika client mencoba terhubung saat server sudah penuh. |
+| `GAME_ERROR`| `message` | Mengirim pesan error (misal: mencoba mulai dengan 1 pemain). |
+
+## Struktur Proyek
+Proyek ini diorganisir ke dalam beberapa file untuk memastikan pemisahan tanggung jawab yang jelas.
 ```
 .
-├── assets/
+├── assets/                 # 🖼️ Direktori untuk semua aset visual
 │   ├── board.png
-│   ├── dice1.png ... dice6.png
 │   ├── pawn_blue.png
-│   └── pawn_pink.png
-├── sounds/
+│   └── ...
+├── sounds/                 # 🎵 Direktori untuk semua efek suara
 │   ├── dice_roll.wav
-│   ├── pawn_move.wav
-│   └── snake_slide.wav
-├── client.py
-├── server.py
-├── game_server.py
-├── game_state.py
-└── README.md
+│   └── ...
+├── client.py               # 💻 Titik masuk untuk pemain, mengelola UI dan koneksi.
+├── server.py               # 🚪 Titik masuk untuk server, mengelola koneksi & thread.
+├── game_server.py          # 🧠 Otak dari server, berisi semua logika permainan.
+└── game_state.py           # 📝 Struktur data untuk menyimpan state game.
+```
+- **client.py**: Mengurus semua hal yang dilihat dan diinput oleh pemain.
+- **server.py**: Bertugas sebagai "penerima tamu" yang menerima koneksi dan mendelegasikannya.
+- **game_server.py**: Bertindak sebagai "koki" yang memproses semua perintah dan logika game.
+- **game_state.py**: Bertindak sebagai "papan tulis" yang menyimpan data permainan.
+
+## Cara Menjalankan
+Ikuti langkah-langkah berikut untuk menjalankan game.
+
+#### 1. Prasyarat
+Pastikan Anda memiliki Python 3 terpasang. Kemudian, install library Pygame.
+```bash
+pip install pygame
 ```
 
-## Instalasi & Pengaturan
-Pastikan Anda memiliki Python 3 dan `pip` terinstal di sistem Anda.
+#### 2. Unduh Aset
+Pastikan semua file gambar (`assets/`) dan suara (`sounds/`) berada di direktori yang benar sesuai dengan struktur proyek di atas.
 
-1.  **Kloning Repositori**
-    ```bash
-    git clone [URL_REPOSITORI_GITHUB_ANDA]
-    cd [NAMA_FOLDER_PROYEK]
-    ```
+#### 3. Jalankan Server
+Buka terminal, navigasi ke direktori proyek, dan jalankan file `server.py`.
+```bash
+python server.py
+```
+Server akan berjalan dan siap menerima koneksi di port 55555.
 
-2.  **Instalasi Dependensi**
-    Proyek ini hanya membutuhkan `pygame`. Instal dengan perintah:
-    ```bash
-    pip install pygame
-    ```
+#### 4. Jalankan Client
+Buka terminal **baru** untuk setiap pemain.
+- **Untuk bermain di komputer yang sama (localhost):**
+  Jalankan `client.py` tanpa argumen. Anda akan diminta memasukkan nama.
+  ```bash
+  python client.py
+  ```
+- **Untuk bermain di jaringan lokal (LAN):**
+  Cari tahu alamat IP dari komputer yang menjalankan server (misalnya: `192.168.1.10`). Jalankan `client.py` dengan alamat IP tersebut sebagai argumen.
+  ```bash
+  python client.py 192.168.1.10
+  ```
+Permainan akan dimulai setelah dua pemain terhubung dan salah satunya menekan `SPACE`.
 
-## Cara Bermain
-Permainan ini dirancang untuk dua pemain di jaringan lokal. Anda memerlukan setidaknya dua terminal atau command prompt.
+## Tim Kami
+Proyek ini dikembangkan dengan penuh semangat oleh:
+- **[Nama Anggota 1]** - [Tanggung Jawab, misal: Lead Server Developer, Architect]
+- **[Nama Anggota 2]** - [Tanggung Jawab, misal: Lead Client Developer, UI/UX Designer]
 
-1.  **Jalankan Server**
-    Buka terminal pertama dan jalankan server. Server akan berjalan dan menunggu koneksi.
-    ```bash
-    python server.py
-    ```
-
-2.  **Jalankan Klien Pemain 1**
-    Buka terminal kedua. Jika menjalankan di komputer yang sama dengan server, cukup jalankan:
-    ```bash
-    python client.py
-    ```
-    Jika di komputer berbeda, sertakan IP Privat dari komputer server:
-    ```bash
-    python client.py [IP_SERVER]
-    ```
-    Masukkan nama Anda dan tekan ENTER.
-
-3.  **Jalankan Klien Pemain 2**
-    Buka terminal ketiga dan ulangi langkah klien di atas.
-
-4.  **Mulai Bermain**
-    - Setelah kedua pemain terhubung, salah satu pemain dapat menekan `SPACE` untuk memulai permainan.
-    - Tekan `SPACE` pada giliran Anda untuk mengocok dadu.
-
-## Protokol Komunikasi
-Komunikasi antara client dan server menggunakan format JSON yang dikirim per baris (`\n`).
-
-### Pesan dari Klien ke Server
-| Perintah | Deskripsi | Contoh Payload |
-| :--- | :--- | :--- |
-| `[Nama Pemain]` | Dikirim sekali saat terhubung untuk mendaftarkan nama. | `Farrel\n` |
-| `START_GAME` | Dikirim saat pemain menekan spasi sebelum game aktif. | `{"command": "START_GAME"}` |
-| `ROLL_DICE` | Dikirim saat pemain menekan spasi pada gilirannya. | `{"command": "ROLL_DICE"}` |
-
-### Pesan dari Server ke Klien
-| Perintah | Deskripsi | Contoh Payload |
-| :--- | :--- | :--- |
-| `PLAYER_ASSIGNED` | Memberi tahu klien nomor pemainnya (1 atau 2). | `{"command": "PLAYER_ASSIGNED", "player_num": 1}` |
-| `SERVER_FULL` | Diberikan jika klien mencoba terhubung saat sudah ada 2 pemain. | `{"command": "SERVER_FULL"}` |
-| `DICE_RESULT` | Mengirim hasil kocokan dadu agar klien bisa memulai animasi. | `{"command": "DICE_RESULT", "dice": 6}` |
-| `PLAYER_MOVE` | Mengirim jalur pergerakan pion setelah jeda animasi dadu. | `{"command": "PLAYER_MOVE", "player": 1, "path": [...]}` |
-| `GAME_UPDATE` | Mengirim update lengkap kondisi permainan. | `{"command": "GAME_UPDATE", "p1_pos": 5, ...}` |
-
-## Tim Pengembang
-| Nama Anggota | NPM / NIM | Tugas Utama |
-| :--- | :--- | :--- |
-| **[Nama Lengkap Anda]** | [NPM/NIM Anda] | [Contoh: Full-Stack Development, Arsitektur, Dokumentasi] |
-| **[Nama Anggota 2]** | [NPM/NIM Anggota 2] | [Tugasnya...] |
+Proyek ini dibuat sebagai bagian dari tugas mata kuliah **[Nama Mata Kuliah]** di **[Nama Universitas]**.
