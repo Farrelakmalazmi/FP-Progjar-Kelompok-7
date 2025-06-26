@@ -55,21 +55,34 @@ Proyek ini dirancang dengan berbagai fitur untuk menciptakan pengalaman bermain 
 Proyek ini mengadopsi arsitektur **Client-Server Terdistribusi dengan Load Balancer** sebagai titik masuk utama.
 
 ```
-+----------+     +-----------------------+     +-----------------+
-| Client 1 | --\                           | --> | Game Server 1   |
-+----------+   |                           |     | (Port 60001)    |
-               >---- [   Load Balancer   ] ---- |                 |
-+----------+   |      (Port 55555)       |     +-----------------+
-| Client 2 | --/   (Pairing & Round Robin) |
-+----------+                             |
-                                         |
-+----------+     +-----------------------+     +-----------------+
-| Client 3 | --\                           | --> | Game Server 2   |
-+----------+   |                           |     | (Port 60002)    |
-               >---- [   Load Balancer   ] ---- |                 |
-+----------+   |                           |     +-----------------+
-| Client 4 | --/                           |
-+----------+                             +-------------------------+
+                               +-----------------------------+
+                               |    Load Balancer (Python)   |
+                               |      (Port Utama: 55555)    |
+                               | (Logika Matchmaking/Pairing)|
+                               +--------------+--------------+
+                                              |
+      (1. Semua Client Terhubung ke Sini Dulu) |
+                 +----------------------------+----------------------------+
+                 | (2. Diarahkan secara bergiliran ke server yang tersedia)|
+                 |                                                         |
+                 ▼                                                         ▼
++-----------------------------+                           +-----------------------------+
+| Game Server #1 (Python)     |                           | Game Server #2 (Python)     |
+|   (Port Backend: 60001)     |                           |   (Port Backend: 60002)     |
+| (Menangani 1 Sesi Game)     |                           | (Menangani 1 Sesi Game)     |
++--------------+--------------+                           +--------------+--------------+
+               |                                                         |
+ (3. Permainan berlangsung di sini)                             (Permainan berlangsung di sini)
+               |                                                         |
+      +--------+--------+                                       +--------+--------+
+      |                 |                                       |                 |
+      ▼                 ▼                                       ▼                 ▼
++-----------+     +-----------+                           +-----------+     +-----------+
+| Client A  |     | Client B  |                           | Client C  |     | Client D  |
++-----------+     +-----------+                           +-----------+     +-----------+
+ (Bermain di Sesi 1)                                       (Bermain di Sesi 2)
+
+
 ```
 
 #### Pilihan Desain Utama:
