@@ -66,21 +66,21 @@ Proyek ini mengadopsi arsitektur **Client-Server Terdistribusi dengan Load Balan
                  | (2. Diarahkan secara bergiliran ke server yang tersedia)|
                  |                                                         |
                  ▼                                                         ▼
-+-----------------------------+                           +-----------------------------+
-| Game Server #1 (Python)     |                           | Game Server #2 (Python)     |
-|   (Port Backend: 60001)     |                           |   (Port Backend: 60002)     |
-| (Menangani 1 Sesi Game)     |                           | (Menangani 1 Sesi Game)     |
-+--------------+--------------+                           +--------------+--------------+
-               |                                                         |
- (3. Permainan berlangsung di sini)                             (Permainan berlangsung di sini)
-               |                                                         |
-      +--------+--------+                                       +--------+--------+
-      |                 |                                       |                 |
-      ▼                 ▼                                       ▼                 ▼
-+-----------+     +-----------+                           +-----------+     +-----------+
-| Client A  |     | Client B  |                           | Client C  |     | Client D  |
-+-----------+     +-----------+                           +-----------+     +-----------+
- (Bermain di Sesi 1)                                       (Bermain di Sesi 2)
+  +-----------------------------+                           +-----------------------------+
+  | Game Server #1 (Python)     |                           | Game Server #2 (Python)     |
+  |   (Port Backend: 60001)     |                           |   (Port Backend: 60002)     |
+  | (Menangani 1 Sesi Game)     |                           | (Menangani 1 Sesi Game)     |
+  +--------------+--------------+                           +--------------+--------------+
+                 |                                                         |
+   (3. Permainan berlangsung di sini)                             (Permainan berlangsung di sini)
+                 |                                                         |
+        +--------+--------+                                       +--------+--------+
+        |                 |                                       |                 |
+        ▼                 ▼                                       ▼                 ▼
+  +-----------+     +-----------+                           +-----------+     +-----------+
+  | Client A  |     | Client B  |                           | Client C  |     | Client D  |
+  +-----------+     +-----------+                           +-----------+     +-----------+
+   (Bermain di Sesi 1)                                       (Bermain di Sesi 2)
 
 
 ```
