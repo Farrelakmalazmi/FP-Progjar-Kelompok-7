@@ -1,4 +1,4 @@
-# 🐍 Snake & Ladder Online with Load Balancing 🎲
+# 🐍 Snake and Ladder Multiplayer 🎲
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![Pygame](https://img.shields.io/badge/pygame-2.6.1-green.svg)
