@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/b76211be-c0c0-426f-b4d6-a117fe0e1379)![image](https://github.com/user-attachments/assets/b76211be-c0c0-426f-b4d6-a117fe0e1379)# 🐍 Snake and Ladder Multiplayer 🎲
+# 🐍 Snake and Ladder Multiplayer 🎲
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![Pygame](https://img.shields.io/badge/pygame-2.6.1-green.svg)
