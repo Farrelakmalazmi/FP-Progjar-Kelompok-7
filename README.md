@@ -61,7 +61,7 @@ Proyek ini mengadopsi arsitektur **Client-Server Terdistribusi dengan Load Balan
                                | (Logika Matchmaking/Pairing)|
                                +--------------+--------------+
                                               |
-      (1. Semua Client Terhubung ke Sini Dulu) |
+     (1. Semua Client Terhubung ke Sini Dulu) |
                  +----------------------------+----------------------------+
                  | (2. Diarahkan secara bergiliran ke server yang tersedia)|
                  |                                                         |
