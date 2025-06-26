@@ -153,7 +153,7 @@ Permainan akan dimulai setelah dua pemain terhubung dan salah satunya menekan `S
 
 ## Tim Kami
 Proyek ini dikembangkan dengan penuh semangat oleh:
-- **[Nama Anggota 1]** - [Tanggung Jawab, misal: Lead Server Developer, Architect]
-- **[Nama Anggota 2]** - [Tanggung Jawab, misal: Lead Client Developer, UI/UX Designer]
+- **[Farrel Akmalazmi Nugraha]**
+- **[Nama Anggota 2]**
 
 Proyek ini dibuat sebagai bagian dari tugas mata kuliah **[Nama Mata Kuliah]** di **[Nama Universitas]**.
