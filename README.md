@@ -5,9 +5,8 @@
 
 Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikembangkan untuk memenuhi tugas mata kuliah Pemrograman Jaringan (C). Dengan memanfaatkan kekuatan Python, library Pygame untuk rendering grafis, dan modul Socket untuk komunikasi jaringan, kami berhasil membangun sebuah aplikasi client-server yang fungsional. Fokus utama dari proyek ini adalah mendemonstrasikan arsitektur jaringan yang memungkinkan dua pemain untuk berinteraksi secara real-time dalam satu sesi permainan melalui jaringan lokal (LAN).
 
-## Tangkapan Layar (Screenshots)
-*Tempatkan screenshot dari dua jendela klien yang sedang berjalan berdampingan di sini untuk menunjukkan fungsionalitas multiplayer secara langsung.*
-
+## Preview Game (Screenshots)
+Beikut ini adalah dua screenshots saat sedang bermain snake and ladder, dari dua client yang berbeda.
 <p align="center">
   <img src="https://github.com/user-attachments/assets/7f97bd7b-1961-4573-b7ee-594d2d804f7f" alt="Tampilan Klien 1" width="400"/>
   <img src="https://github.com/user-attachments/assets/864f9940-4425-4eeb-a921-52b09822909d" alt="Tampilan Klien 2" width="400"/>
