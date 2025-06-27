@@ -41,13 +41,17 @@ class SnakeAndLadderServer:
     def handle_command(self, client_id, command):
         cmd_type = command.get('command')
         player_num = self.clients.get(client_id, {}).get('player_num')
-        if cmd_type == 'START_GAME': self.start_new_game()
+        
+        if cmd_type == 'START_GAME':
+            self.start_new_game()
         elif cmd_type == 'ROLL_DICE':
             if player_num == self.game_state.current_turn and self.game_state.game_active:
                 self.handle_roll_dice(player_num)
 
     def handle_roll_dice(self, player_num):
         with self.lock:
+            if self.game_state.winner: return
+
             dice_result = random.randint(1, 6)
             self.game_state.last_dice_roll = dice_result
             
@@ -55,14 +59,9 @@ class SnakeAndLadderServer:
             time.sleep(1.5) 
 
             current_pos = self.game_state.player_positions[player_num]
-            
             path = []
-            move_type = "normal"
             
-            distance_to_win = 100 - current_pos
-            if current_pos > 94 and dice_result != distance_to_win:
-                path.append({'pos': current_pos, 'type': 'stay'}) 
-            elif current_pos + dice_result > 100:
+            if current_pos + dice_result > 100:
                 path.append({'pos': current_pos, 'type': 'stay'}) 
             else:
                 intermediate_pos = current_pos + dice_result
@@ -71,52 +70,46 @@ class SnakeAndLadderServer:
                 final_pos = intermediate_pos
                 if intermediate_pos in self.board.ladders_map:
                     final_pos = self.board.ladders_map[intermediate_pos]
-                    move_type = "ladder"
                     path.append({'pos': final_pos, 'type': 'ladder_end'})
                 elif intermediate_pos in self.board.snakes_map:
                     final_pos = self.board.snakes_map[intermediate_pos]
-                    move_type = "snake"
                     path.append({'pos': final_pos, 'type': 'snake_end'})
                 
                 self.game_state.player_positions[player_num] = final_pos
             
-            move_message = {
-                'command': 'PLAYER_MOVE',
-                'player': player_num,
-                'dice': dice_result,
-                'path': path
-            }
-            self.broadcast_message(move_message)
+            self.broadcast_message({'command': 'PLAYER_MOVE', 'player': player_num, 'path': path})
             time.sleep(0.1) 
 
             if self.game_state.player_positions[player_num] == 100:
-                winner_name = self.clients.get(list(self.clients.keys())[player_num-1], {}).get('name')
+                winner_name = "Unknown"
+                for c_id, c_info in self.clients.items():
+                    if c_info['player_num'] == player_num:
+                        winner_name = c_info['name']
+                        break
                 self.end_game(winner_name)
+                self.broadcast_game_state()
                 return
 
-            if dice_result == 6 and not self.game_state.is_extra_turn:
-                self.game_state.is_extra_turn = True
-            else:
+            if dice_result != 6:
                 self.game_state.current_turn = 2 if self.game_state.current_turn == 1 else 1
-                self.game_state.is_extra_turn = False
             
             self.broadcast_game_state()
     
     def start_new_game(self):
         with self.lock:
             if len(self.clients) < 2:
-                self.broadcast_message({'command': 'GAME_ERROR', 'message': 'Butuh 2 pemain.'}); return
-            print("Game Ular Tangga baru dimulai!")
-            self.game_state.reset_game(); self.game_state.game_active = True
+                self.broadcast_message({'command': 'GAME_ERROR', 'message': 'Butuh 2 pemain.'})
+                return
+            print("Game Ular Tangga baru dimulai atau di-reset!")
+            self.game_state.reset_game()
+            self.game_state.game_active = True
             self.broadcast_game_state()
     
     def end_game(self, winner):
-        with self.lock:
-            if not self.game_state.winner:
-                self.game_state.game_active = False; self.game_state.winner = winner
-                print(f"Game berakhir! Pemenang: {winner}")
-                self.broadcast_game_state()
-                threading.Timer(5.0, self.start_new_game).start()
+        if not self.game_state.winner:
+            self.game_state.game_active = False
+            self.game_state.winner = winner
+            print(f"Game berakhir! Pemenang: {winner}")
     
     def send_to_client(self, client_id, message):
         try:
@@ -124,12 +117,24 @@ class SnakeAndLadderServer:
         except: self.remove_client(client_id)
     
     def broadcast_message(self, message):
-        for client_id in list(self.clients.keys()): self.send_to_client(client_id, message)
+        for client_id in list(self.clients.keys()): 
+            self.send_to_client(client_id, message)
 
     def broadcast_game_state(self):
         p1_name, p2_name = "Player 1", "Player 2"
         for cid, info in self.clients.items():
             if info['player_num'] == 1: p1_name = info['name']
             if info['player_num'] == 2: p2_name = info['name']
-        state_msg = { 'command': 'GAME_UPDATE', 'p1_pos': self.game_state.player_positions.get(1, 0), 'p2_pos': self.game_state.player_positions.get(2, 0), 'p1_name': p1_name, 'p2_name': p2_name, 'turn': self.game_state.current_turn, 'dice': self.game_state.last_dice_roll, 'game_active': self.game_state.game_active, 'winner': self.game_state.winner }
+        
+        state_msg = { 
+            'command': 'GAME_UPDATE', 
+            'p1_pos': self.game_state.player_positions.get(1, 0), 
+            'p2_pos': self.game_state.player_positions.get(2, 0), 
+            'p1_name': p1_name, 
+            'p2_name': p2_name, 
+            'turn': self.game_state.current_turn, 
+            'dice': self.game_state.last_dice_roll, 
+            'game_active': self.game_state.game_active, 
+            'winner': self.game_state.winner 
+        }
         self.broadcast_message(state_msg)
