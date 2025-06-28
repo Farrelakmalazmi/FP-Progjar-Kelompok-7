@@ -191,8 +191,10 @@ Buka terminal **baru** untuk setiap pemain.
 Klien pertama dan kedua akan diarahkan ke Server 1. Klien ketiga dan keempat akan diarahkan ke Server 2, dan seterusnya.
 
 ## Tim Kami
-Proyek ini dikembangkan dengan penuh semangat oleh:
 - **Farrel Akmalazmi Nugraha - 5025221138**
-- **[Nama Anggota 2]**
+- **Bintang Wibi Hanoraga - 5025221034**
+- **Davin Fisabilillah Reynard Putra - 5025221137**
+- **Alendra Rafif Athaillah - 5025221297**
+- **Faiq Lidan Baihaqi - 5025221294**
 
 Proyek ini dibuat sebagai bagian dari tugas mata kuliah **Pemrograman Jaringan**.
