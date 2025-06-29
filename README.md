@@ -112,9 +112,7 @@ Komunikasi antara klien dan server menggunakan protokol HTTP/1.1 melalui metode 
 ├── client.py                # 💻 Titik masuk untuk pemain, mengelola UI dan request.
 ├── game_http_server.py      # 🧠 Otak server, berisi logika HTTP, game, dan Redis.
 ├── load_balancer.py         # ⚖️ Titik masuk utama untuk semua client.
-├── server_thread_pool_http.py # 🚀 Peluncur untuk instance server backend.
-├── .env                     # 🔒 File untuk menyimpan kredensial Redis (lokal).
-└── .gitignore               # 🙈 Memastikan file .env tidak terunggah ke GitHub.
+└── server_thread_pool_http.py # 🚀 Peluncur untuk instance server backend.
 ```
 
 ## Cara Menjalankan
