@@ -4,6 +4,15 @@
 
 Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikembangkan untuk memenuhi tugas mata kuliah Pemrograman Jaringan (C). Proyek ini berevolusi dari basis kode server HTTP sederhana dan mengubahnya menjadi sebuah **Game Server Multiplayer** yang fungsional. Fokus utama dari proyek ini adalah mendemonstrasikan arsitektur jaringan modern yang skalabel dan *stateless*, menggunakan **Load Balancer** untuk distribusi permintaan, dan **database terpusat (Azure Cache for Redis)** untuk manajemen *state*, yang memungkinkan banyak sesi permainan berjalan secara simultan.
 
+## Anggota Kelompok
+|  Nama 	|  NRP 	|
+|---	|---	|
+|  Bintang Wibi Hanoraga 	|  5025221034 	|
+|  Davin Fisabilillah Reynard Putra 	|  5025221137 	|
+|  Farrel Akmalazmi Nugraha 	|   5025221138	|
+|  Faiq Lidan Baihaqi 	|  5025221294 	|
+|  Alendra Rafif Athaillah 	|  5025221297 |
+
 ## Tangkapan Layar (Screenshots)
 Berikut ini adalah dua screenshot saat sedang bermain Snake and Ladder, dari dua client yang berbeda yang terhubung ke sistem server yang sama.
 <p align="center">
@@ -18,7 +27,6 @@ Berikut ini adalah dua screenshot saat sedang bermain Snake and Ladder, dari dua
 - [Protokol Jaringan](#protokol-jaringan)
 - [Struktur Proyek](#struktur-proyek)
 - [Cara Menjalankan](#cara-menjalankan)
-- [Tim Kami](#tim-kami)
 
 ## Tentang Proyek
 Proyek Ular Tangga Multiplayer ini adalah implementasi penuh dari game klasik, namun dibangun di atas arsitektur web modern yang *stateless*. Berbeda dari pendekatan koneksi TCP persisten, proyek ini menggunakan **protokol HTTP** untuk semua komunikasi, di mana setiap aksi pemain adalah sebuah permintaan HTTP yang independen. Arsitektur ini menggunakan **Load Balancer** untuk mendistribusikan permintaan ke beberapa *instance* **server backend yang stateless**. Semua status permainan disimpan dalam **database terpusat (Azure Cache for Redis)**, memastikan konsistensi data dan memungkinkan sistem untuk menangani banyak game secara paralel dengan cara yang tangguh dan skalabel.
@@ -185,12 +193,5 @@ Untuk bermain dengan teman di jaringan WiFi atau LAN yang sama, ikuti langkah ta
 > **Penting! Catatan Firewall**: Pastikan *Windows Firewall* atau *antivirus* di **komputer server** mengizinkan koneksi masuk pada port `55555`, `8001`, `8002`, dan `8003` agar klien dari komputer lain dapat terhubung.
 
 ---
-
-## Tim Kami
-- **Farrel Akmalazmi Nugraha - 5025221138**
-- **Bintang Wibi Hanoraga - 5025221034**
-- **Davin Fisabilillah Reynard Putra - 5025221137**
-- **Alendra Rafif Athaillah - 5025221297**
-- **Faiq Lidan Baihaqi - 5025221294**
 
 Proyek ini dibuat sebagai bagian dari tugas mata kuliah **Pemrograman Jaringan**.
