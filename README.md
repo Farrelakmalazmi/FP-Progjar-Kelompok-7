@@ -7,8 +7,8 @@ Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikemba
 ## Tangkapan Layar (Screenshots)
 Berikut ini adalah dua screenshot saat sedang bermain Snake and Ladder, dari dua client yang berbeda yang terhubung ke sistem server yang sama.
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/7f97bd7b-1961-4573-b7ee-594d2d804f7f" alt="Tampilan Klien 1" width="400"/>
-  <img src="https://github.com/user-attachments/assets/864f9940-4425-4eeb-a921-52b09822909d" alt="Tampilan Klien 2" width="400"/>
+  <img src="https://github.com/user-attachments/assets/7f97bd7b-1961-4573-b7ee-594d2d804f7f" alt="Tampilan Klien 1" width="400"/>
+  <img src="https://github.com/user-attachments/assets/864f9940-4425-4eeb-a921-52b09822909d" alt="Tampilan Klien 2" width="400"/>
 </p>
 
 ## Daftar Isi
@@ -52,30 +52,30 @@ Proyek ini dirancang dengan berbagai fitur untuk menciptakan pengalaman bermain 
 Proyek ini mengadopsi arsitektur **Stateless Terdistribusi dengan Load Balancer dan Database Terpusat**.
 
 ```
-                         (1. Semua klien mengirim request HTTP ke sini)
-                                             |
-                                             ▼
-                              +-----------------------------+
-                              |    Load Balancer (Python)   |
-                              |     (Port Utama: 55555)     |
-                              | (Distribusi Round-Robin)    |
-                              +--------------+--------------+
-                                             | (2. Request diteruskan ke salah satu server)
-                 +---------------------------+---------------------------+
-                 |                           |                           |
-                 ▼                           ▼                           ▼
-  +-------------------------+   +-------------------------+   +-------------------------+
-  | Server Backend #1 (8001)|   | Server Backend #2 (8002)|   | Server Backend #3 (8003)|
-  | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|
-  +-------------------------+   +-------------------------+   +-------------------------+
-                 | (3. Semua server terhubung ke sumber data yang sama)  |
-                 +---------------------------+---------------------------+
-                                             |
-                                             ▼
-                                +---------------------------+
-                                |  Azure Cache for Redis    |
-                                | (Database State Terpusat) |
-                                +---------------------------+
+                         (1. Semua klien mengirim request HTTP ke sini)
+                                             |
+                                             ▼
+                              +-----------------------------+
+                              |    Load Balancer (Python)   |
+                              |     (Port Utama: 55555)     |
+                              | (Distribusi Round-Robin)    |
+                              +--------------+--------------+
+                                             | (2. Request diteruskan ke salah satu server)
+                 +---------------------------+---------------------------+
+                 |                           |                           |
+                 ▼                           ▼                           ▼
+  +-------------------------+   +-------------------------+   +-------------------------+
+  | Server Backend #1 (8001)|   | Server Backend #2 (8002)|   | Server Backend #3 (8003)|
+  | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|
+  +-------------------------+   +-------------------------+   +-------------------------+
+                 | (3. Semua server terhubung ke sumber data yang sama)  |
+                 +---------------------------+---------------------------+
+                                             |
+                                             ▼
+                                +---------------------------+
+                                |  Azure Cache for Redis    |
+                                | (Database State Terpusat) |
+                                +---------------------------+
 
 ```
 
@@ -105,16 +105,16 @@ Komunikasi antara klien dan server menggunakan protokol HTTP/1.1 melalui metode 
 ## Struktur Proyek
 ```
 .
-├── assets/                  # 🖼️ Direktori untuk semua aset visual
-│   └── ...
-├── sounds/                  # 🎵 Direktori untuk semua efek suara
-│   └── ...
-├── client.py                # 💻 Titik masuk untuk pemain, mengelola UI dan request.
-├── game_http_server.py      # 🧠 Otak server, berisi logika HTTP, game, dan Redis.
-├── load_balancer.py         # ⚖️ Titik masuk utama untuk semua client.
+├── assets/                  # 🖼️ Direktori untuk semua aset visual
+│   └── ...
+├── sounds/                  # 🎵 Direktori untuk semua efek suara
+│   └── ...
+├── client.py                # 💻 Titik masuk untuk pemain, mengelola UI dan request.
+├── game_http_server.py      # 🧠 Otak server, berisi logika HTTP, game, dan Redis.
+├── load_balancer.py         # ⚖️ Titik masuk utama untuk semua client.
 ├── server_thread_pool_http.py # 🚀 Peluncur untuk instance server backend.
-├── .env                     # 🔒 File untuk menyimpan kredensial Redis (lokal).
-└── .gitignore               # 🙈 Memastikan file .env tidak terunggah ke GitHub.
+├── .env                     # 🔒 File untuk menyimpan kredensial Redis (lokal).
+└── .gitignore               # 🙈 Memastikan file .env tidak terunggah ke GitHub.
 ```
 
 ## Cara Menjalankan
@@ -128,8 +128,16 @@ Ikuti langkah-langkah berikut untuk menjalankan keseluruhan sistem.
   pip install pygame redis python-dotenv
   ```
 
-#### 2. Jalankan Server
-Buka **3 jendela Terminal** terpisah untuk menjalankan server backend. Gunakan flag `-u` untuk memastikan log tampil secara *real-time*.
+#### 2. Konfigurasi Kredensial
+Sebelum menjalankan, buat file bernama `.env` di direktori utama proyek. Isi file tersebut dengan kredensial Azure Cache for Redis Anda seperti contoh berikut:
+```env
+REDIS_HOST=nama-host-redis-anda.redis.cache.windows.net
+REDIS_PASSWORD=kunci-akses-redis-anda
+```
+Pastikan file `.env` sudah ada di dalam `.gitignore` agar tidak terunggah ke repositori.
+
+#### 3. Jalankan Server Backend
+Buka **3 jendela Terminal** terpisah. Di setiap terminal, jalankan perintah berikut, ganti port untuk masing-masing. Gunakan flag `-u` untuk memastikan log tampil secara *real-time*.
 ```bash
 # Di Terminal 1:
 python -u server_thread_pool_http.py 8001
@@ -141,19 +149,44 @@ python -u server_thread_pool_http.py 8002
 python -u server_thread_pool_http.py 8003
 ```
 
-#### 3. Jalankan Load Balancer
+#### 4. Jalankan Load Balancer
 Buka **Terminal ke-4**. Pastikan ketiga server backend sudah berjalan.
 ```bash
 python load_balancer.py
 ```
-Load Balancer akan berjalan di port `55555`.
+Load Balancer akan berjalan dan siap menerima koneksi dari semua client di port `55555`.
 
-#### 4. Jalankan Client
-Buka **terminal baru** untuk setiap pemain.
+#### 5. Jalankan Client (Di Komputer yang Sama)
+Buka **terminal baru** untuk setiap pemain dan jalankan perintah berikut. Klien akan otomatis terhubung ke Load Balancer yang berjalan di `127.0.0.1`.
 ```bash
 python client.py
 ```
-Klien akan otomatis terhubung ke Load Balancer. Jalankan sekali lagi untuk pemain kedua.
+Jalankan perintah ini di satu terminal untuk pemain pertama, dan di terminal lain untuk pemain kedua.
+
+---
+
+### **Opsional: Bermain di Jaringan Lokal (Beda Komputer)**
+
+Untuk bermain dengan teman di jaringan WiFi atau LAN yang sama, ikuti langkah tambahan ini setelah menjalankan semua server di satu komputer.
+
+1.  **Cari Alamat IP Komputer Server**
+    Di komputer yang menjalankan semua server dan load balancer, cari alamat IP lokalnya.
+    - **Di Windows**: Buka `Command Prompt` dan ketik `ipconfig`. Cari alamat `IPv4` (contoh: `192.168.1.5`).
+    - **Di macOS/Linux**: Buka `Terminal` dan ketik `ifconfig` atau `ip addr`.
+
+2.  **Ubah Alamat di Kode Klien**
+    Di komputer lain yang akan menjadi klien, buka file `client.py` dengan editor teks. Ubah alamat IP di baris paling atas. Ganti `'127.0.0.1'` dengan alamat IP komputer server yang sudah Anda temukan.
+    ```python
+    # Ganti '127.0.0.1' dengan IP komputer server Anda
+    LOAD_BALANCER_ADDRESS = ('192.168.1.5', 55555)
+    ```
+
+3.  **Jalankan Klien**
+    Sekarang, jalankan `python client.py` di komputer klien. Klien tersebut akan terhubung ke komputer server melalui jaringan.
+
+> **Penting! Catatan Firewall**: Pastikan *Windows Firewall* atau *antivirus* di **komputer server** mengizinkan koneksi masuk pada port `55555`, `8001`, `8002`, dan `8003` agar klien dari komputer lain dapat terhubung.
+
+---
 
 ## Tim Kami
 - **Farrel Akmalazmi Nugraha - 5025221138**
