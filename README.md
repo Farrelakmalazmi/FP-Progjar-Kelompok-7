@@ -1,13 +1,11 @@
-# 🐍 Snake and Ladder Multiplayer 🎲
+# 🐍 Snake and Ladder Multiplayer (HTTP Edition) 🎲
 
-![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
-![Pygame](https://img.shields.io/badge/pygame-2.6.1-green.svg)
-![Architecture](https://img.shields.io/badge/architecture-Load%20Balanced-orange.svg)
+![Python](https://img.shields.io/badge/python-3.11+-blue.svg) ![Pygame](https://img.shields.io/badge/pygame-2.5+-green.svg) ![Architecture](https://img.shields.io/badge/architecture-Load%20Balanced%20%26%20Stateless-orange.svg) ![Database](https://img.shields.io/badge/database-Azure%20Redis-red.svg)
 
-Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikembangkan untuk memenuhi tugas mata kuliah Pemrograman Jaringan (C). Dengan memanfaatkan kekuatan Python, library Pygame untuk rendering grafis, dan modul Socket untuk komunikasi jaringan, kami berhasil membangun sebuah aplikasi client-server yang fungsional dan terdistribusi. Fokus utama dari proyek ini adalah mendemonstrasikan arsitektur jaringan yang skalabel menggunakan **Load Balancer**, yang memungkinkan beberapa sesi permainan berjalan secara simultan di *instance* server yang berbeda.
+Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikembangkan untuk memenuhi tugas mata kuliah Pemrograman Jaringan (C). Proyek ini berevolusi dari basis kode server HTTP sederhana dan mengubahnya menjadi sebuah **Game Server Multiplayer** yang fungsional. Fokus utama dari proyek ini adalah mendemonstrasikan arsitektur jaringan modern yang skalabel dan *stateless*, menggunakan **Load Balancer** untuk distribusi permintaan, dan **database terpusat (Azure Cache for Redis)** untuk manajemen *state*, yang memungkinkan banyak sesi permainan berjalan secara simultan.
 
 ## Tangkapan Layar (Screenshots)
-Berikut ini adalah dua screenshot saat sedang bermain Snake and Ladder, dari dua client yang berbeda yang terhubung ke game server yang sama.
+Berikut ini adalah dua screenshot saat sedang bermain Snake and Ladder, dari dua client yang berbeda yang terhubung ke sistem server yang sama.
 <p align="center">
   <img src="https://github.com/user-attachments/assets/7f97bd7b-1961-4573-b7ee-594d2d804f7f" alt="Tampilan Klien 1" width="400"/>
   <img src="https://github.com/user-attachments/assets/864f9940-4425-4eeb-a921-52b09822909d" alt="Tampilan Klien 2" width="400"/>
@@ -23,172 +21,147 @@ Berikut ini adalah dua screenshot saat sedang bermain Snake and Ladder, dari dua
 - [Tim Kami](#tim-kami)
 
 ## Tentang Proyek
-Proyek Ular Tangga Multiplayer ini adalah implementasi penuh dari game klasik yang kita semua kenal, namun dibawa ke level berikutnya dengan arsitektur terdistribusi. Proyek ini tidak hanya memungkinkan dua pemain untuk bermain bersama dari komputer yang berbeda, tetapi juga menggunakan **Load Balancer** untuk mengarahkan pasangan pemain ke *instance* server game yang berbeda. Hal ini menciptakan sistem yang lebih skalabel dan tangguh, mampu menangani banyak sesi permainan secara bersamaan.
+Proyek Ular Tangga Multiplayer ini adalah implementasi penuh dari game klasik, namun dibangun di atas arsitektur web modern yang *stateless*. Berbeda dari pendekatan koneksi TCP persisten, proyek ini menggunakan **protokol HTTP** untuk semua komunikasi, di mana setiap aksi pemain adalah sebuah permintaan HTTP yang independen. Arsitektur ini menggunakan **Load Balancer** untuk mendistribusikan permintaan ke beberapa *instance* **server backend yang stateless**. Semua status permainan disimpan dalam **database terpusat (Azure Cache for Redis)**, memastikan konsistensi data dan memungkinkan sistem untuk menangani banyak game secara paralel dengan cara yang tangguh dan skalabel.
 
 ## Fitur Unggulan
 Proyek ini dirancang dengan berbagai fitur untuk menciptakan pengalaman bermain yang lengkap, modern, dan stabil.
 
 ### Gameplay
-- **🧑‍🤝‍🧑 Multiplayer untuk 2 Pemain**: Didesain khusus untuk dua pemain yang terhubung melalui jaringan yang sama dalam satu sesi game.
+- **🧑‍🤝‍🧑 Multiplayer untuk 2 Pemain**: Didesain khusus untuk dua pemain yang dapat saling menemukan dan bermain bersama secara otomatis.
 - **📜 Aturan Permainan Klasik**: Mengimplementasikan papan 10x10 dengan aturan ular (turun) dan tangga (naik).
-- **⚖️ Sistem Giliran (Turn-Based) yang Adil**: Server bertindak sebagai wasit, memastikan giliran pemain berjalan secara teratur.
+- **⚖️ Sistem Giliran (Turn-Based) yang Adil**: State giliran yang terpusat di Redis memastikan tidak ada tumpang tindih giliran.
 - **🎲 Giliran Ekstra**: Mendapatkan angka 6 pada dadu akan memberikan pemain hak untuk melempar dadu sekali lagi.
 - **🎯 Kemenangan Akurat**: Pemain harus mendapatkan angka dadu yang pas untuk mendarat tepat di kotak 100.
-- **🔄 Permainan Berkelanjutan**: Setelah seorang pemain menang, server secara otomatis mereset permainan baru setelah jeda 5 detik.
+- **🔄 Permainan Berkelanjutan**: Setelah permainan selesai, pemain dapat langsung memulai ronde baru dengan menekan spasi.
 
 ### Teknis & Jaringan
-- **⚖️ Arsitektur dengan Load Balancer**: Implementasi *Load Balancer* dengan logika *Pairing* yang mengarahkan setiap pasangan pemain ke *instance* server yang berbeda, memungkinkan skalabilitas horizontal.
-- **👑 Server Otoritatif**: Setiap *instance* server game adalah satu-satunya sumber kebenaran (*Single Source of Truth*) untuk sesi permainannya, mencegah kecurangan dari sisi client.
-- **🔗 Koneksi TCP Persisten**: Menggunakan Sockets TCP untuk membangun koneksi yang andal antara client dan server game.
-- **📝 Protokol Komunikasi JSON**: Semua komunikasi menggunakan format JSON yang terstruktur dan mudah dibaca.
-- **⚙️ Server Konkuren dengan Thread Pool**: Setiap *instance* server game menggunakan `concurrent.futures.ThreadPoolExecutor` untuk menangani koneksi dari kliennya secara efisien.
-- **🔒 Keamanan Thread (Thread-Safety)**: Mengimplementasikan `threading.Lock` pada operasi kritis di server game dan *load balancer*.
+- **⚖️ Arsitektur Load Balancer**: Implementasi *Load Balancer* dengan strategi *Round-Robin* yang mendistribusikan beban permintaan HTTP secara merata ke semua *instance* server backend.
+- **☁️ State Terpusat dengan Redis**: Semua *state* permainan disimpan di **Azure Cache for Redis**, memungkinkan server backend bersifat *stateless* dan skalabel.
+- **🌐 Komunikasi Berbasis HTTP**: Seluruh komunikasi antara klien dan server menggunakan protokol HTTP, sesuai dengan instruksi tugas untuk memodifikasi server HTTP.
+- **🔄 Polling Asinkron**: Klien menggunakan *polling* di *thread* terpisah untuk mendapatkan update status game, menghasilkan animasi yang mulus tanpa membekukan UI.
+- **⚙️ Server Konkuren dengan Thread Pool**: Setiap *instance* server backend menggunakan `concurrent.futures.ThreadPoolExecutor` untuk menangani banyak permintaan HTTP secara efisien dan simultan.
 
 ### Pengalaman Pengguna (UX)
-- **🎨 Antarmuka Grafis yang Menarik**: Dibangun dengan `Pygame`, menampilkan papan permainan, bidak, dan informasi status permainan secara jelas.
-- **💨 Animasi yang Halus**: Animasi pergerakan bidak yang detail dan animasi kocokan dadu memberikan *feedback* visual yang memuaskan.
+- **🎨 Antarmuka Grafis yang Menarik**: Dibangun dengan `Pygame`, menampilkan papan, bidak, dan informasi status permainan secara jelas.
+- **💨 Animasi Sinkron**: Animasi kocokan dadu dan pergerakan bidak disinkronkan antar klien untuk memberikan pengalaman visual yang konsisten.
 - **🔊 Efek Suara Imersif**: Dilengkapi dengan efek suara untuk kocokan dadu, pergerakan bidak, dan saat pemain menang.
-- **💡 Feedback Giliran yang Jelas**: Bidak pemain yang sedang mendapat giliran akan berdenyut secara visual.
-- **🏷️ Personalisasi Nama Pemain**: Pemain dapat memasukkan nama mereka sendiri sebelum permainan dimulai.
+- **💡 Feedback Giliran yang Jelas**: Lingkaran berwarna di sekitar indikator giliran menandakan siapa yang sedang aktif.
+- **🏷️ Personalisasi Nama Pemain**: Pemain dapat memasukkan nama mereka, yang akan ditampilkan di judul jendela aplikasi.
 
 ## Arsitektur & Pilihan Desain
-Proyek ini mengadopsi arsitektur **Client-Server Terdistribusi dengan Load Balancer** sebagai titik masuk utama.
+Proyek ini mengadopsi arsitektur **Stateless Terdistribusi dengan Load Balancer dan Database Terpusat**.
 
 ```
+                         (1. Semua klien mengirim request HTTP ke sini)
+                                           |
+                                           ▼
                                +-----------------------------+
                                |    Load Balancer (Python)   |
-                               |      (Port Utama: 55555)    |
-                               | (Logika Matchmaking/Pairing)|
+                               |     (Port Utama: 55555)     |
+                               | (Distribusi Round-Robin)    |
                                +--------------+--------------+
-                                              |
-     (1. Semua Client Terhubung ke Sini Dulu) |
-                 +----------------------------+----------------------------+
-                 | (2. Diarahkan secara bergiliran ke server yang tersedia)|
-                 |                                                         |
-                 ▼                                                         ▼
-  +-----------------------------+                           +-----------------------------+
-  | Game Server #1 (Python)     |                           | Game Server #2 (Python)     |
-  |   (Port Backend: 60001)     |                           |   (Port Backend: 60002)     |
-  | (Menangani 1 Sesi Game)     |                           | (Menangani 1 Sesi Game)     |
-  +--------------+--------------+                           +--------------+--------------+
-                 |                                                         |
-   (3. Permainan berlangsung di sini)                             (Permainan berlangsung di sini)
-                 |                                                         |
-        +--------+--------+                                       +--------+--------+
-        |                 |                                       |                 |
-        ▼                 ▼                                       ▼                 ▼
-  +-----------+     +-----------+                           +-----------+     +-----------+
-  | Client A  |     | Client B  |                           | Client C  |     | Client D  |
-  +-----------+     +-----------+                           +-----------+     +-----------+
-   (Bermain di Sesi 1)                                       (Bermain di Sesi 2)
-
+                                           | (2. Request diteruskan ke salah satu server)
+                 +---------------------------+---------------------------+
+                 |                           |                           |
+                 ▼                           ▼                           ▼
+  +-------------------------+   +-------------------------+   +-------------------------+
+  | Server Backend #1 (8001)|   | Server Backend #2 (8002)|   | Server Backend #3 (8003)|
+  | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|
+  +-------------------------+   +-------------------------+   +-------------------------+
+                 | (3. Semua server terhubung ke sumber data yang sama) |
+                 +---------------------------+---------------------------+
+                                             |
+                                             ▼
+                                +---------------------------+
+                                |  Azure Cache for Redis    |
+                                | (Database State Terpusat) |
+                                +---------------------------+
 
 ```
 
 #### Pilihan Desain Utama:
-> **Mengapa Load Balancer dengan Logika Pairing?** 🤔 Daripada menyeimbangkan beban per koneksi, *load balancer* ini dirancang untuk "memasangkan" dua klien yang masuk secara berurutan dan mengirim mereka ke *instance* server yang sama menggunakan metode *Round Robin*. Ini memastikan bahwa setiap sesi permainan (yang membutuhkan 2 pemain) berjalan dalam lingkungan terisolasi, memungkinkan sistem untuk menangani banyak game secara paralel.
+> **Mengapa Arsitektur Stateless dengan Redis?** 🤔 Daripada menyimpan *state* di memori setiap server (yang akan menyulitkan *load balancing*), kami memusatkan semua *state* permainan di Redis. Ini memungkinkan server kami bersifat *stateless*—artinya, permintaan apa pun dari klien mana pun dapat dilayani oleh server mana pun tanpa kehilangan konteks. Desain ini secara fundamental lebih skalabel, tangguh, dan sejalan dengan praktik arsitektur web modern.
 
-> **Mengapa Server Game Modular?** 🛡️ Arsitektur server dipecah menjadi `server.py` (lapisan jaringan), `game_server.py` (lapisan logika), dan `game_state.py` (lapisan data). Desain ini memungkinkan setiap komponen untuk fokus pada tugasnya masing-masing, memudahkan pengembangan, pengujian, dan pemeliharaan.
+> **Mengapa Komunikasi via HTTP?** 🛡️ Sesuai dengan instruksi tugas, seluruh sistem ini dibangun di atas basis kode server HTTP. Kami memperluasnya untuk menangani protokol game kami sendiri yang disematkan dalam permintaan `GET`. Klien melakukan *polling* untuk mendapatkan *update*, mensimulasikan komunikasi dua arah di atas protokol *request-response* HTTP.
 
 #### Tumpukan Teknologi (Technology Stack):
 - **Bahasa Pemrograman**: Python 3
 - **Library Grafis & Game**: Pygame
+- **Server Logic**: Modifikasi dari `http.server`
 - **Jaringan**: Modul `socket` bawaan Python
+- **Database State**: Azure Cache for Redis
 - **Konkurensi**: Modul `threading` dan `concurrent.futures.ThreadPoolExecutor`
 
 ## Protokol Jaringan
-Komunikasi antara client dan server mengikuti protokol berbasis JSON yang dikirim per baris (`\n`).
+Komunikasi antara klien dan server menggunakan protokol HTTP/1.1 melalui metode `GET`. Perintah dan data dikirimkan sebagai *query parameters*. Server merespons dengan format JSON.
 
-#### Client → Load Balancer
-| Langkah | Deskripsi |
-| :--- | :--- |
-| 1. Connect | Client terhubung ke Load Balancer di port utama (55555). |
-
-#### Load Balancer → Client
-| Respons | Deskripsi | Contoh Payload |
+| Perintah | Deskripsi | Contoh URL |
 | :--- | :--- | :--- |
-| Alamat Server | LB mengirim alamat (host, port) dari server game yang ditugaskan. | `{"host": "127.0.0.1", "port": 60001}` |
-
-#### Client → Server Game
-| Perintah | Deskripsi |
-| :--- | :--- |
-| `(string nama)` | Pesan teks mentah pertama setelah terhubung, berisi nama pemain. |
-| `{"command": "START_GAME"}`| Dikirim saat pemain menekan spasi untuk memulai game. |
-| `{"command": "ROLL_DICE"}` | Dikirim saat pemain menekan spasi pada gilirannya. |
-
-
-#### Server Game → Client
-| Perintah | Deskripsi |
-| :--- | :--- |
-| `PLAYER_ASSIGNED` | Memberi tahu client nomor pemainnya (1 atau 2). |
-| `GAME_UPDATE` | Pesan utama yang berisi seluruh status game terkini. |
-| `DICE_RESULT` | Mengirim hasil kocokan dadu untuk memulai animasi di client. |
-| `PLAYER_MOVE` | Mengirim jalur pergerakan pion yang detail untuk animasi. |
-| `SERVER_FULL`| Dikirim jika client mencoba terhubung saat server sudah penuh. |
-| `GAME_ERROR`| Mengirim pesan error (misal: mencoba mulai dengan 1 pemain). |
-
+| `FIND_OR_CREATE_GAME` | Mencari game yang menunggu pemain. Jika ada, bergabung. Jika tidak, membuat game baru. | `/game?command=FIND_OR_CREATE_GAME&name=Farrel`|
+| `GET_STATE` | Mengambil status permainan terbaru untuk sinkronisasi. | `/game?command=GET_STATE&game_id=game_123abc` |
+| `START_GAME` | Memulai/memulai ulang permainan. | `/game?command=START_GAME&game_id=game_123abc` |
+| `ROLL_DICE` | Melempar dadu untuk pemain yang sedang giliran. | `/game?command=ROLL_DICE&game_id=game_123abc&player_num=1` |
 
 ## Struktur Proyek
 ```
 .
-├── assets/                 # 🖼️ Direktori untuk semua aset visual
+├── assets/                  # 🖼️ Direktori untuk semua aset visual
 │   └── ...
-├── sounds/                 # 🎵 Direktori untuk semua efek suara
+├── sounds/                  # 🎵 Direktori untuk semua efek suara
 │   └── ...
-├── client.py               # 💻 Titik masuk untuk pemain, mengelola UI dan koneksi.
-├── server.py               # 🚪 Titik masuk untuk instance server game, mengelola koneksi.
-├── game_server.py          # 🧠 Otak dari server, berisi semua logika permainan.
-├── game_state.py           # 📝 Struktur data untuk menyimpan state game.
-└── load_balancer.py        # ⚖️ Titik masuk utama untuk semua client, mendistribusikan sesi.
+├── client.py                # 💻 Titik masuk untuk pemain, mengelola UI dan request.
+├── game_http_server.py      # 🧠 Otak server, berisi logika HTTP, game, dan Redis.
+├── load_balancer.py         # ⚖️ Titik masuk utama untuk semua client.
+├── server_thread_pool_http.py # 🚀 Peluncur untuk instance server backend.
+├── .env                     # 🔒 File untuk menyimpan kredensial Redis (lokal).
+└── .gitignore               # 🙈 Memastikan file .env tidak terunggah ke GitHub.
 ```
-- **load_balancer.py**: Bertindak sebagai "resepsionis" yang mengarahkan pasangan pemain ke "ruang meeting" (server game) yang tersedia.
-- **server.py**: Bertugas sebagai "penjaga pintu" di setiap ruang meeting.
-- **game_server.py**: Bertindak sebagai "wasit" di dalam setiap ruang meeting.
-- **client.py**: Tampilan dari sisi "tamu" atau pemain.
 
 ## Cara Menjalankan
-Ikuti langkah-langkah berikut untuk menjalankan game dengan arsitektur load balancer.
+Ikuti langkah-langkah berikut untuk menjalankan keseluruhan sistem.
 
 #### 1. Prasyarat
-Pastikan Anda memiliki Python 3 terpasang dan library Pygame telah diinstal.
-```bash
-pip install pygame
-```
+- Python 3 terpasang.
+- Membuat resource **Azure Cache for Redis** dan mendapatkan kredensialnya.
+- Library Python yang dibutuhkan:
+  ```bash
+  pip install pygame redis python-dotenv
+  ```
 
-#### 2. Jalankan Beberapa Instance Server Game
-Buka terminal **sebanyak jumlah server yang diinginkan** (misalnya 3 terminal). Di setiap terminal, jalankan `server.py` dengan nomor port yang berbeda sesuai konfigurasi di `load_balancer.py`.
+#### 2. Konfigurasi
+- Buat file `.env` di direktori utama.
+- Isi file `.env` dengan kredensial Azure Redis Anda:
+  ```
+  REDIS_HOST="hostname-anda.redis.cache.windows.net"
+  REDIS_PASS="kunci-akses-anda"
+  ```
+
+#### 3. Jalankan Server
+Buka **3 jendela Terminal** terpisah untuk menjalankan server backend. Gunakan flag `-u` untuk memastikan log tampil secara *real-time*.
 ```bash
 # Di Terminal 1:
-python server.py 60001
+python -u server_thread_pool_http.py 8001
 
 # Di Terminal 2:
-python server.py 60002
+python -u server_thread_pool_http.py 8002
 
 # Di Terminal 3:
-python server.py 60003
+python -u server_thread_pool_http.py 8003
 ```
-Biarkan semua terminal server ini berjalan.
 
-#### 3. Jalankan Load Balancer
-Buka terminal **baru** dan jalankan `load_balancer.py`.
+#### 4. Jalankan Load Balancer
+Buka **Terminal ke-4**. Pastikan ketiga server backend sudah berjalan.
 ```bash
 python load_balancer.py
 ```
-Load Balancer sekarang akan berjalan dan siap menerima koneksi dari semua client di port `55555`.
+Load Balancer akan berjalan di port `55555`.
 
-#### 4. Jalankan Client
-Buka terminal **baru** untuk setiap pemain.
-- **Untuk bermain di komputer yang sama (localhost):**
-  Jalankan `client.py` tanpa argumen. Klien akan otomatis terhubung ke Load Balancer.
-  ```bash
-  python client.py
-  ```
-- **Untuk bermain di jaringan lokal (LAN):**
-  Jalankan `client.py` dengan alamat IP dari komputer yang menjalankan Load Balancer.
-  ```bash
-  python client.py [IP_LOAD_BALANCER]
-  ```
-Klien pertama dan kedua akan diarahkan ke Server 1. Klien ketiga dan keempat akan diarahkan ke Server 2, dan seterusnya.
+#### 5. Jalankan Client
+Buka **terminal baru** untuk setiap pemain.
+```bash
+python client.py
+```
+Klien akan otomatis terhubung ke Load Balancer. Jalankan sekali lagi untuk pemain kedua.
 
 ## Tim Kami
 - **Farrel Akmalazmi Nugraha - 5025221138**
