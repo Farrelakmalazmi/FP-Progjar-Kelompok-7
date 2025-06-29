@@ -128,15 +128,7 @@ Ikuti langkah-langkah berikut untuk menjalankan keseluruhan sistem.
   pip install pygame redis python-dotenv
   ```
 
-#### 2. Konfigurasi
-- Buat file `.env` di direktori utama.
-- Isi file `.env` dengan kredensial Azure Redis Anda:
-  ```
-  REDIS_HOST="hostname-anda.redis.cache.windows.net"
-  REDIS_PASS="kunci-akses-anda"
-  ```
-
-#### 3. Jalankan Server
+#### 2. Jalankan Server
 Buka **3 jendela Terminal** terpisah untuk menjalankan server backend. Gunakan flag `-u` untuk memastikan log tampil secara *real-time*.
 ```bash
 # Di Terminal 1:
@@ -149,14 +141,14 @@ python -u server_thread_pool_http.py 8002
 python -u server_thread_pool_http.py 8003
 ```
 
-#### 4. Jalankan Load Balancer
+#### 3. Jalankan Load Balancer
 Buka **Terminal ke-4**. Pastikan ketiga server backend sudah berjalan.
 ```bash
 python load_balancer.py
 ```
 Load Balancer akan berjalan di port `55555`.
 
-#### 5. Jalankan Client
+#### 4. Jalankan Client
 Buka **terminal baru** untuk setiap pemain.
 ```bash
 python client.py
