@@ -53,14 +53,14 @@ Proyek ini mengadopsi arsitektur **Stateless Terdistribusi dengan Load Balancer 
 
 ```
                          (1. Semua klien mengirim request HTTP ke sini)
-                                           |
-                                           ▼
-                               +-----------------------------+
-                               |    Load Balancer (Python)   |
-                               |     (Port Utama: 55555)     |
-                               | (Distribusi Round-Robin)    |
-                               +--------------+--------------+
-                                           | (2. Request diteruskan ke salah satu server)
+                                             |
+                                             ▼
+                              +-----------------------------+
+                              |    Load Balancer (Python)   |
+                              |     (Port Utama: 55555)     |
+                              | (Distribusi Round-Robin)    |
+                              +--------------+--------------+
+                                             | (2. Request diteruskan ke salah satu server)
                  +---------------------------+---------------------------+
                  |                           |                           |
                  ▼                           ▼                           ▼
@@ -68,7 +68,7 @@ Proyek ini mengadopsi arsitektur **Stateless Terdistribusi dengan Load Balancer 
   | Server Backend #1 (8001)|   | Server Backend #2 (8002)|   | Server Backend #3 (8003)|
   | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|
   +-------------------------+   +-------------------------+   +-------------------------+
-                 | (3. Semua server terhubung ke sumber data yang sama) |
+                 | (3. Semua server terhubung ke sumber data yang sama)  |
                  +---------------------------+---------------------------+
                                              |
                                              ▼
