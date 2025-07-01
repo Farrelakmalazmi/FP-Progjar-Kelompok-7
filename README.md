@@ -1,8 +1,8 @@
 # 🐍 Snake and Ladder Multiplayer (HTTP Edition) 🎲
 
-![Python](https://img.shields.io/badge/python-3.11+-blue.svg) ![Pygame](https://img.shields.io/badge/pygame-2.5+-green.svg) ![Architecture](https://img.shields.io/badge/architecture-Load%20Balanced%20%26%20Stateless-orange.svg) ![Database](https://img.shields.io/badge/database-Azure%20Redis-red.svg)
+![Python](https://img.shields.io/badge/python-3.11+-blue.svg) ![Pygame](https://img.shields.io/badge/pygame-2.5+-green.svg) ![Architecture](https://img.shields.io/badge/architecture-Stateful%20Monolithic-blue.svg)
 
-Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikembangkan untuk memenuhi tugas mata kuliah Pemrograman Jaringan (C). Proyek ini berevolusi dari basis kode server HTTP sederhana dan mengubahnya menjadi sebuah **Game Server Multiplayer** yang fungsional. Fokus utama dari proyek ini adalah mendemonstrasikan arsitektur jaringan modern yang skalabel dan *stateless*, menggunakan **Load Balancer** untuk distribusi permintaan, dan **database terpusat (Azure Cache for Redis)** untuk manajemen *state*, yang memungkinkan banyak sesi permainan berjalan secara simultan.
+Proyek ini merupakan implementasi teknis dari permainan Ular Tangga yang dikembangkan untuk memenuhi tugas mata kuliah Pemrograman Jaringan. Proyek ini berevolusi dari basis kode server HTTP sederhana dan mengubahnya menjadi sebuah **Game Server Multiplayer** yang fungsional, konkuren, dan *stateful*.
 
 ## Anggota Kelompok
 |  Nama 	|  NRP 	|
@@ -29,25 +29,24 @@ Berikut ini adalah dua screenshot saat sedang bermain Snake and Ladder, dari dua
 - [Cara Menjalankan](#cara-menjalankan)
 
 ## Tentang Proyek
-Proyek Ular Tangga Multiplayer ini adalah implementasi penuh dari game klasik, namun dibangun di atas arsitektur web modern yang *stateless*. Berbeda dari pendekatan koneksi TCP persisten, proyek ini menggunakan **protokol HTTP** untuk semua komunikasi, di mana setiap aksi pemain adalah sebuah permintaan HTTP yang independen. Arsitektur ini menggunakan **Load Balancer** untuk mendistribusikan permintaan ke beberapa *instance* **server backend yang stateless**. Semua status permainan disimpan dalam **database terpusat (Azure Cache for Redis)**, memastikan konsistensi data dan memungkinkan sistem untuk menangani banyak game secara paralel dengan cara yang tangguh dan skalabel.
+Proyek Ular Tangga Multiplayer ini adalah implementasi penuh dari game klasik yang dibangun dengan memodifikasi sebuah server HTTP dasar. Berbeda dari pendekatan koneksi TCP persisten, proyek ini menggunakan **protokol HTTP** untuk semua komunikasi, di mana setiap aksi pemain adalah sebuah permintaan HTTP yang independen. Arsitektur yang digunakan adalah **server monolitik yang stateful**, di mana semua status permainan disimpan langsung di dalam memori server, memungkinkan sistem untuk menangani banyak sesi permainan secara paralel dalam satu proses yang efisien.
 
 ## Fitur Unggulan
-Proyek ini dirancang dengan berbagai fitur untuk menciptakan pengalaman bermain yang lengkap, modern, dan stabil.
+Proyek ini dirancang dengan berbagai fitur untuk menciptakan pengalaman bermain yang lengkap dan stabil.
 
 ### Gameplay
 - **🧑‍🤝‍🧑 Multiplayer untuk 2 Pemain**: Didesain khusus untuk dua pemain yang dapat saling menemukan dan bermain bersama secara otomatis.
 - **📜 Aturan Permainan Klasik**: Mengimplementasikan papan 10x10 dengan aturan ular (turun) dan tangga (naik).
-- **⚖️ Sistem Giliran (Turn-Based) yang Adil**: State giliran yang terpusat di Redis memastikan tidak ada tumpang tindih giliran.
+- **⚖️ Sistem Giliran (Turn-Based) yang Adil**: State giliran yang terpusat di memori server memastikan tidak ada tumpang tindih giliran.
 - **🎲 Giliran Ekstra**: Mendapatkan angka 6 pada dadu akan memberikan pemain hak untuk melempar dadu sekali lagi.
 - **🎯 Kemenangan Akurat**: Pemain harus mendapatkan angka dadu yang pas untuk mendarat tepat di kotak 100.
 - **🔄 Permainan Berkelanjutan**: Setelah permainan selesai, pemain dapat langsung memulai ronde baru dengan menekan spasi.
 
 ### Teknis & Jaringan
-- **⚖️ Arsitektur Load Balancer**: Implementasi *Load Balancer* dengan strategi *Round-Robin* yang mendistribusikan beban permintaan HTTP secara merata ke semua *instance* server backend.
-- **☁️ State Terpusat dengan Redis**: Semua *state* permainan disimpan di **Azure Cache for Redis**, memungkinkan server backend bersifat *stateless* dan skalabel.
+- **⚙️ Server Stateful dengan State di Memori**: Semua state permainan disimpan dalam sebuah *global variable* di server. Akses ke state ini diamankan menggunakan `threading.RLock` untuk mencegah *race condition* dan *deadlock*.
 - **🌐 Komunikasi Berbasis HTTP**: Seluruh komunikasi antara klien dan server menggunakan protokol HTTP, sesuai dengan instruksi tugas untuk memodifikasi server HTTP.
 - **🔄 Polling Asinkron**: Klien menggunakan *polling* di *thread* terpisah untuk mendapatkan update status game, menghasilkan animasi yang mulus tanpa membekukan UI.
-- **⚙️ Server Konkuren dengan Thread Pool**: Setiap *instance* server backend menggunakan `concurrent.futures.ThreadPoolExecutor` untuk menangani banyak permintaan HTTP secara efisien dan simultan.
+- **🚀 Server Konkuren dengan Thread Pool**: Server menggunakan `concurrent.futures.ThreadPoolExecutor` untuk menangani banyak permintaan HTTP secara efisien dan simultan dalam satu proses.
 
 ### Pengalaman Pengguna (UX)
 - **🎨 Antarmuka Grafis yang Menarik**: Dibangun dengan `Pygame`, menampilkan papan, bidak, dan informasi status permainan secara jelas.
@@ -57,7 +56,7 @@ Proyek ini dirancang dengan berbagai fitur untuk menciptakan pengalaman bermain 
 - **🏷️ Personalisasi Nama Pemain**: Pemain dapat memasukkan nama mereka, yang akan ditampilkan di judul jendela aplikasi.
 
 ## Arsitektur & Pilihan Desain
-Proyek ini mengadopsi arsitektur **Stateless Terdistribusi dengan Load Balancer dan Database Terpusat**.
+Proyek ini mengadopsi arsitektur **Server Monolitik yang Stateful dan Konkuren**.
 
 ```
                  +---------------------------------+
@@ -79,11 +78,10 @@ Proyek ini mengadopsi arsitektur **Stateless Terdistribusi dengan Load Balancer 
       |   Klien 1       |                   |   Klien 2       |
       |   (Pygame)      |                   |   (Pygame)      |
       +-----------------+                   +-----------------+
-
 ```
 
 #### Pilihan Desain Utama:
-> **Mengapa Arsitektur Stateless dengan Redis?** 🤔 Daripada menyimpan *state* di memori setiap server (yang akan menyulitkan *load balancing*), kami memusatkan semua *state* permainan di Redis. Ini memungkinkan server kami bersifat *stateless*—artinya, permintaan apa pun dari klien mana pun dapat dilayani oleh server mana pun tanpa kehilangan konteks. Desain ini secara fundamental lebih skalabel, tangguh, dan sejalan dengan praktik arsitektur web modern.
+> **Mengapa Arsitektur Stateful dengan Global Variable?** 🤔 Sesuai dengan arahan, arsitektur diubah dari model terdistribusi menjadi model monolitik. Semua *state* permainan disimpan dalam sebuah *global variable* di dalam memori server. Pilihan ini menyederhanakan arsitektur secara signifikan karena tidak lagi memerlukan database eksternal. Untuk memastikan keamanan data dalam lingkungan *multithreaded*, akses ke *global variable* ini dilindungi menggunakan `threading.RLock` untuk mencegah *race condition* dan *deadlock*.
 
 > **Mengapa Komunikasi via HTTP?** 🛡️ Sesuai dengan instruksi tugas, seluruh sistem ini dibangun di atas basis kode server HTTP. Kami memperluasnya untuk menangani protokol game kami sendiri yang disematkan dalam permintaan `GET`. Klien melakukan *polling* untuk mendapatkan *update*, mensimulasikan komunikasi dua arah di atas protokol *request-response* HTTP.
 
@@ -92,7 +90,6 @@ Proyek ini mengadopsi arsitektur **Stateless Terdistribusi dengan Load Balancer 
 - **Library Grafis & Game**: Pygame
 - **Server Logic**: Modifikasi dari `http.server`
 - **Jaringan**: Modul `socket` bawaan Python
-- **Database State**: Azure Cache for Redis
 - **Konkurensi**: Modul `threading` dan `concurrent.futures.ThreadPoolExecutor`
 
 ## Protokol Jaringan
@@ -108,14 +105,13 @@ Komunikasi antara klien dan server menggunakan protokol HTTP/1.1 melalui metode 
 ## Struktur Proyek
 ```
 .
-├── assets/                  # 🖼️ Direktori untuk semua aset visual
-│   └── ...
-├── sounds/                  # 🎵 Direktori untuk semua efek suara
-│   └── ...
-├── client.py                # 💻 Titik masuk untuk pemain, mengelola UI dan request.
-├── game_http_server.py      # 🧠 Otak server, berisi logika HTTP, game, dan Redis.
-├── load_balancer.py         # ⚖️ Titik masuk utama untuk semua client.
-└── server_thread_pool_http.py # 🚀 Peluncur untuk instance server backend.
+├── assets/                  # 🖼️ Direktori untuk semua aset visual
+│   └── ...
+├── sounds/                  # 🎵 Direktori untuk semua efek suara
+│   └── ...
+├── client.py                # 💻 Titik masuk untuk pemain, mengelola UI dan request.
+├── game_http_server.py      # 🧠 Otak server, berisi logika HTTP, game, dan state management.
+└── server_thread_pool_http.py # 🚀 Peluncur untuk Server Game Tunggal.
 ```
 
 ## Cara Menjalankan
@@ -123,69 +119,49 @@ Ikuti langkah-langkah berikut untuk menjalankan keseluruhan sistem.
 
 #### 1. Prasyarat
 - Python 3 terpasang.
-- Membuat resource **Azure Cache for Redis** dan mendapatkan kredensialnya.
 - Library Python yang dibutuhkan:
   ```bash
-  pip install pygame redis python-dotenv
+  pip install pygame
   ```
 
-#### 2. Konfigurasi Kredensial
-Sebelum menjalankan, buat file bernama `.env` di direktori utama proyek. Isi file tersebut dengan kredensial Azure Cache for Redis Anda seperti contoh berikut:
-```env
-REDIS_HOST=nama-host-redis-anda.redis.cache.windows.net
-REDIS_PASSWORD=kunci-akses-redis-anda
-```
-Pastikan file `.env` sudah ada di dalam `.gitignore` agar tidak terunggah ke repositori.
+#### 2. Menjalankan di Satu Komputer (Lokal)
+1.  **Jalankan Server**: Buka satu jendela Terminal, lalu jalankan perintah:
+    ```bash
+    python server_thread_pool_http.py
+    ```
+    Server akan berjalan di port `8000`. Biarkan terminal ini tetap berjalan.
 
-#### 3. Jalankan Server Backend
-Buka **3 jendela Terminal** terpisah. Di setiap terminal, jalankan perintah berikut, ganti port untuk masing-masing. Gunakan flag `-u` untuk memastikan log tampil secara *real-time*.
-```bash
-# Di Terminal 1:
-python -u server_thread_pool_http.py 8001
-
-# Di Terminal 2:
-python -u server_thread_pool_http.py 8002
-
-# Di Terminal 3:
-python -u server_thread_pool_http.py 8003
-```
-
-#### 4. Jalankan Load Balancer
-Buka **Terminal ke-4**. Pastikan ketiga server backend sudah berjalan.
-```bash
-python load_balancer.py
-```
-Load Balancer akan berjalan dan siap menerima koneksi dari semua client di port `55555`.
-
-#### 5. Jalankan Client (Di Komputer yang Sama)
-Buka **terminal baru** untuk setiap pemain dan jalankan perintah berikut. Klien akan otomatis terhubung ke Load Balancer yang berjalan di `127.0.0.1`.
-```bash
-python client.py
-```
-Jalankan perintah ini di satu terminal untuk pemain pertama, dan di terminal lain untuk pemain kedua.
+2.  **Jalankan Klien**: Buka terminal baru untuk setiap pemain (misalnya, buka dua terminal baru untuk dua pemain). Di setiap terminal klien, jalankan perintah:
+    ```bash
+    python client.py
+    ```
+    Klien pertama akan membuat game baru, dan klien kedua akan otomatis menemukan dan bergabung ke game tersebut.
 
 ---
 
 ### **Opsional: Bermain di Jaringan Lokal (Beda Komputer)**
 
-Untuk bermain dengan teman di jaringan WiFi atau LAN yang sama, ikuti langkah tambahan ini setelah menjalankan semua server di satu komputer.
+Untuk bermain dengan teman di jaringan WiFi atau LAN yang sama, ikuti langkah tambahan ini.
 
 1.  **Cari Alamat IP Komputer Server**
-    Di komputer yang menjalankan semua server dan load balancer, cari alamat IP lokalnya.
+    Di komputer yang menjalankan server, cari alamat IP lokalnya.
     - **Di Windows**: Buka `Command Prompt` dan ketik `ipconfig`. Cari alamat `IPv4` (contoh: `192.168.1.5`).
     - **Di macOS/Linux**: Buka `Terminal` dan ketik `ifconfig` atau `ip addr`.
 
-2.  **Ubah Alamat di Kode Klien**
+2.  **Jalankan Server**
+    Jalankan server di komputer utama seperti pada langkah di atas.
+
+3.  **Ubah Alamat di Kode Klien**
     Di komputer lain yang akan menjadi klien, buka file `client.py` dengan editor teks. Ubah alamat IP di baris paling atas. Ganti `'127.0.0.1'` dengan alamat IP komputer server yang sudah Anda temukan.
     ```python
     # Ganti '127.0.0.1' dengan IP komputer server Anda
-    LOAD_BALANCER_ADDRESS = ('192.168.1.5', 55555)
+    SERVER_ADDRESS = ('192.168.1.5', 8000)
     ```
 
-3.  **Jalankan Klien**
+4.  **Jalankan Klien**
     Sekarang, jalankan `python client.py` di komputer klien. Klien tersebut akan terhubung ke komputer server melalui jaringan.
 
-> **Penting! Catatan Firewall**: Pastikan *Windows Firewall* atau *antivirus* di **komputer server** mengizinkan koneksi masuk pada port `55555`, `8001`, `8002`, dan `8003` agar klien dari komputer lain dapat terhubung.
+> **Penting! Catatan Firewall**: Pastikan *Windows Firewall* atau *antivirus* di **komputer server** mengizinkan koneksi masuk pada port `8000` agar klien dari komputer lain dapat terhubung.
 
 ---
 
