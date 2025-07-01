@@ -28,31 +28,24 @@ def ProcessTheClient(connection, address):
     connection.close()
     return
 
-def Server(port=8888):
+def Server(port=8000):
     the_clients = []
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    
+
     my_socket.bind(('0.0.0.0', port))
     my_socket.listen(10)
-    logging.warning(f"Server berjalan di port {port}")
+    logging.warning(f"🚀 Server Game Tunggal berjalan di port {port} 🚀")
 
     with ThreadPoolExecutor(20) as executor:
         while True:
             connection, client_address = my_socket.accept()
+            logging.info(f"Menerima koneksi dari {client_address}")
             p = executor.submit(ProcessTheClient, connection, client_address)
             the_clients.append(p)
-            
+
 def main():
-    port = 8001
-    if len(sys.argv) > 1:
-        try:
-            port = int(sys.argv[1])
-        except ValueError:
-            logging.error("Port harus berupa angka.")
-            sys.exit(1)
-            
-    Server(port)
+    Server(port=8000)
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.WARNING)
