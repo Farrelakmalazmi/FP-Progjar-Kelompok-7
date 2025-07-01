@@ -3,11 +3,14 @@ import os.path
 import uuid
 import random
 import json
-import redis
 import logging
+import threading
 from datetime import datetime
 from glob import glob
 from urllib.parse import urlparse, parse_qs
+
+GAME_SESSIONS = {}
+LOCK = threading.RLock()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -42,7 +45,7 @@ class GameLogicHandler:
         current_state['move_start_pos'] = current_pos
         path = []
         if current_pos + dice_result > 100:
-            path.append({'pos': current_pos, 'type': 'stay'}) 
+            path.append({'pos': current_pos, 'type': 'stay'})
         else:
             intermediate_pos = current_pos + dice_result
             path.append({'pos': intermediate_pos, 'type': 'normal_land'})
@@ -69,34 +72,17 @@ class HttpServer:
     def __init__(self):
         self.types = {'.pdf': 'application/pdf', '.jpg': 'image/jpeg', '.txt': 'text/plain', '.html': 'text/html'}
         self.game_logic = GameLogicHandler()
-        try:
-            redis_host = "game-progjar.redis.cache.windows.net"
-            redis_password = "MASUKKAN_PRIMARY_KEY_DARI_AZURE_DISINI"
-            logging.info(f"Menghubungkan ke Redis di host: {redis_host}")
-            self.redis_client = redis.Redis(host=redis_host, port=6380, password=redis_password, ssl=True, decode_responses=True)
-            self.redis_client.ping()
-            logging.info("BERHASIL terhubung ke Azure Cache for Redis!")
-        except Exception as e:
-            logging.error(f"GAGAL terhubung ke Redis: {e}")
-            self.redis_client = None
+        logging.info("HttpServer berjalan dengan state di memori (global variabel).")
 
     def save_game_state(self, game_id, state_dict):
-        if not self.redis_client: return False
-        try:
-            self.redis_client.set(game_id, json.dumps(state_dict))
-            return True
-        except Exception as e:
-            logging.error(f"Error saat menyimpan state: {e}")
-            return False
+        with LOCK:
+            GAME_SESSIONS[game_id] = state_dict
+        logging.info(f"State untuk game {game_id} berhasil disimpan.")
+        return True
 
     def get_game_state(self, game_id):
-        if not self.redis_client: return None
-        try:
-            json_string = self.redis_client.get(game_id)
-            return json.loads(json_string) if json_string else None
-        except Exception as e:
-            logging.error(f"Error saat mengambil state: {e}")
-            return None
+        with LOCK:
+            return GAME_SESSIONS.get(game_id)
 
     def response(self, kode=404, message='Not Found', messagebody=b'', headers={}):
         if isinstance(messagebody, str):
@@ -139,26 +125,29 @@ class HttpServer:
 
     def handle_game_request(self, params):
         command = params.get('command', [None])[0]
-        
+
         if command == 'FIND_OR_CREATE_GAME':
             player_name = params.get('name', ['Pemain Anonim'])[0]
-            for key in self.redis_client.scan_iter("game_*"):
-                state = self.get_game_state(key)
-                if state and not state.get('game_active') and len(state.get('players', {})) == 1:
-                    state['players']['2'] = player_name
-                    self.save_game_state(key, state)
-                    return self.response(200, 'OK', json.dumps({'game_id': key, 'player_num': 2}))
+            
+            with LOCK:
+                for game_id, state in GAME_SESSIONS.items():
+                    if state and not state.get('game_active') and len(state.get('players', {})) == 1:
+                        state['players']['2'] = player_name
+                        self.save_game_state(game_id, state)
+                        logging.info(f"Pemain {player_name} bergabung ke game {game_id}")
+                        return self.response(200, 'OK', json.dumps({'game_id': game_id, 'player_num': 2}))
             
             new_game_id = f"game_{uuid.uuid4().hex[:6]}"
             new_state_obj = GameState()
             new_state_obj.players['1'] = player_name
             self.save_game_state(new_game_id, new_state_obj.__dict__)
+            logging.info(f"Game baru dibuat dengan ID {new_game_id} oleh {player_name}")
             return self.response(200, 'OK', json.dumps({'game_id': new_game_id, 'player_num': 1}))
 
         game_id = params.get('game_id', [None])[0]
         if not game_id:
             return self.response(400, 'Bad Request', json.dumps({'error': 'game_id dibutuhkan'}))
-        
+
         current_state = self.get_game_state(game_id)
         if not current_state:
             return self.response(404, 'Not Found', json.dumps({'error': f'Game {game_id} tidak ditemukan'}))
@@ -166,24 +155,24 @@ class HttpServer:
         if command == 'START_GAME':
             if len(current_state['players']) < 2:
                 return self.response(400, 'Bad Request', json.dumps({'error': 'Butuh 2 pemain'}))
-            
+
             players = current_state['players']
             new_state_obj = GameState()
             new_state_obj.players = players
             new_state_obj.game_active = True
             self.save_game_state(game_id, new_state_obj.__dict__)
-            
+
             return self.response(200, 'OK', json.dumps({'message': 'Game dimulai ulang!'}))
 
         if command == 'ROLL_DICE':
             player_num = int(params.get('player_num', [0])[0])
             if not current_state.get('game_active') or current_state.get('current_turn') != player_num:
                 return self.response(403, 'Forbidden', json.dumps({'error': 'Bukan giliran Anda'}))
-            
+
             new_state = self.game_logic.roll_dice(current_state)
             self.save_game_state(game_id, new_state)
             return self.response(200, 'OK', json.dumps({'status': 'OK', 'message': 'Dice rolled'}))
-            
+
         if command == 'GET_STATE':
             return self.response(200, 'OK', json.dumps(current_state))
 
@@ -191,4 +180,4 @@ class HttpServer:
 
 if __name__ == "__main__":
     httpserver = HttpServer()
-    logging.info("HttpServer instance created.")
+    logging.info("HttpServer instance created for direct testing.")
