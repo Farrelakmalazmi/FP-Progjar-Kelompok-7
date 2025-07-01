@@ -60,30 +60,25 @@ Proyek ini dirancang dengan berbagai fitur untuk menciptakan pengalaman bermain 
 Proyek ini mengadopsi arsitektur **Stateless Terdistribusi dengan Load Balancer dan Database Terpusat**.
 
 ```
-                         (1. Semua klien mengirim request HTTP ke sini)
-                                             |
-                                             ▼
-                              +-----------------------------+
-                              |    Load Balancer (Python)   |
-                              |     (Port Utama: 55555)     |
-                              | (Distribusi Round-Robin)    |
-                              +--------------+--------------+
-                                             | (2. Request diteruskan ke salah satu server)
-                 +---------------------------+---------------------------+
-                 |                           |                           |
-                 ▼                           ▼                           ▼
-  +-------------------------+   +-------------------------+   +-------------------------+
-  | Server Backend #1 (8001)|   | Server Backend #2 (8002)|   | Server Backend #3 (8003)|
-  | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|   | (Stateless, Python HTTP)|
-  +-------------------------+   +-------------------------+   +-------------------------+
-                 | (3. Semua server terhubung ke sumber data yang sama)  |
-                 +---------------------------+---------------------------+
-                                             |
-                                             ▼
-                                +---------------------------+
-                                |  Azure Cache for Redis    |
-                                | (Database State Terpusat) |
-                                +---------------------------+
+                 +---------------------------------+
+                 |   Server Game Tunggal (Python)  |
+                 |      (Port TCP: 8000)           |
+                 |---------------------------------|
+                 |  - ThreadPoolExecutor (Konkuren)|
+                 |  - Logika Game (Ular Tangga)    |
+                 |  - State Management (Global Var)|
+                 |    (Dilindungi oleh RLock)      |
+                 +-----------------+---------------+
+                                   ^
+                                   | (Permintaan HTTP GET)
+                                   |
+                +------------------+------------------+
+                |                                     |
+                ▼                                     ▼
+      +-----------------+                   +-----------------+
+      |   Klien 1       |                   |   Klien 2       |
+      |   (Pygame)      |                   |   (Pygame)      |
+      +-----------------+                   +-----------------+
 
 ```
 
