@@ -8,7 +8,8 @@ import math
 import random
 from urllib.parse import urlencode
 
-LOAD_BALANCER_ADDRESS = ('127.0.0.1', 55555)
+
+SERVER_ADDRESS = ('127.0.0.1', 8000)
 
 pygame.init()
 pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
@@ -20,7 +21,7 @@ back_color = (96, 107, 114)
 pla1clr = (0, 211, 255)
 pla2clr = (255, 121, 191)
 try:
-    board_img = pygame.image.load('assets/board.png').convert_alpha() 
+    board_img = pygame.image.load('assets/board.png').convert_alpha()
     board_img = pygame.transform.scale(board_img, (600, 600))
     dice_images = {i: pygame.transform.scale(pygame.image.load(f'assets/dice{i}.png').convert_alpha(), (150, 150)) for i in range(1, 7)}
 except Exception as e:
@@ -36,7 +37,7 @@ except Exception as e:
 
 class Board:
     def __init__(self):
-        self.pos_map = {} 
+        self.pos_map = {}
         count = 1; box_size = 600 // 10
         for i in range(10):
             for j in range(10):
@@ -47,14 +48,14 @@ class Board:
 class VisualPlayer:
     def __init__(self, image_path, board_map):
         self.board_map=board_map
-        try: 
+        try:
             self.original_image=pygame.image.load(image_path).convert_alpha()
             self.image=pygame.transform.scale(self.original_image,(40,50))
-        except: 
+        except:
             self.image=pygame.Surface((36,36));self.image.fill((255,0,0))
         self.pos=0;self.x,self.y=-100.0,-100.0;self.target_x,self.target_y=-100.0,-100.0
         self.is_moving=False; self.speed=5.0; self.anim_queue=[]; self.pause_until=0
-        
+
     def start_move_animation(self,start_pos,path):
         time.sleep(0.1)
         if self.is_moving or not path:return
@@ -130,9 +131,9 @@ class GameClient:
     def send_request(self, params):
         try:
             query_string = urlencode(params)
-            request = f"GET /game?{query_string} HTTP/1.1\r\nHost: {LOAD_BALANCER_ADDRESS[0]}:{LOAD_BALANCER_ADDRESS[1]}\r\nConnection: close\r\n\r\n"
+            request = f"GET /game?{query_string} HTTP/1.1\r\nHost: {SERVER_ADDRESS[0]}:{SERVER_ADDRESS[1]}\r\nConnection: close\r\n\r\n"
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect(LOAD_BALANCER_ADDRESS)
+            s.connect(SERVER_ADDRESS)
             s.sendall(request.encode('utf-8'))
             response_data = b""
             while True:
@@ -151,7 +152,7 @@ class GameClient:
         screen.fill(back_color)
         draw_text("Mencari game...", pygame.font.SysFont("comicsansms", 40), (255,255,255), (WIDTH/2, HEIGHT/2))
         pygame.display.flip()
-        
+
         params = {'command': 'FIND_OR_CREATE_GAME', 'name': self.player_name}
         response = self.send_request(params)
 
@@ -164,15 +165,15 @@ class GameClient:
         else:
             self.error_message = response.get('error', 'Gagal menemukan atau membuat game.') if response else "Tidak ada balasan dari server."
             self.game_state_view = "NAME_ENTRY"
-    
+
     def process_state_update(self, state_update):
         if not state_update or 'error' in state_update: return
         self.game_data = state_update
-        
+
         new_move_id = self.game_data.get('last_move_id')
         if new_move_id and new_move_id != self.last_animated_move_id:
             self.last_animated_move_id = new_move_id
-            
+
             if dice_roll_sound: dice_roll_sound.play()
             threading.Thread(target=self.dice_animation, args=(self.game_data.get('last_dice_roll', 1),)).start()
 
@@ -193,12 +194,12 @@ class GameClient:
                 state_update = self.send_request({'command': 'GET_STATE', 'game_id': self.game_id})
                 self.process_state_update(state_update)
             time.sleep(0.15)
-    
+
     def run(self):
         font_40 = pygame.font.SysFont("comicsansms", 40)
         font_20 = pygame.font.SysFont("comicsansms", 20)
         font_18 = pygame.font.SysFont("comicsansms", 18, bold=True)
-        
+
         while self.running:
             p1_anim_status = self.p1_visual.update_animation()
             p2_anim_status = self.p2_visual.update_animation()
@@ -209,19 +210,19 @@ class GameClient:
                     self.win_sound_played = True
                 if self.game_over_delay_until == 0:
                     self.game_over_delay_until = pygame.time.get_ticks() + 1200
-            
+
             if self.game_over_delay_until > 0 and pygame.time.get_ticks() >= self.game_over_delay_until:
                 self.game_state_view = "GAME_OVER"
-            
+
             if self.game_state_view != "GAME_OVER":
                 if self.game_data.get('game_active'): self.game_state_view = "PLAYING"
                 elif self.game_id: self.game_state_view = "LOBBY"
 
             is_my_turn_now = self.game_data.get('current_turn') == self.my_player_num
             is_any_pawn_moving = self.p1_visual.is_moving or self.p2_visual.is_moving
-            
+
             for event in pygame.event.get():
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE): 
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self.running = False
                 if self.game_state_view == "NAME_ENTRY":
                     if event.type == pygame.KEYDOWN:
@@ -268,10 +269,10 @@ class GameClient:
                 elif is_my_turn_now: status_text = "GILIRAN ANDA!\n     (SPACE)"
                 else: status_text = f"Menunggu Giliran..."
                 draw_text(status_text, font_18, (53,53,53), (700, 520))
-            
+
             pygame.display.flip()
             clock.tick(60)
-            
+
         pygame.quit()
         sys.exit()
 
